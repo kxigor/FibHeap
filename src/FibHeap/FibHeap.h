@@ -5,7 +5,13 @@
 #include <malloc.h>
 #include <stdint.h>
 
-#define TMP_ARR_START_SIZE (1000)
+#define min(a, b) ({\
+    __typeof__ (a) _a = (a);\
+    __typeof__ (b) _b = (b);\
+    (_a > _b ? _a : _b);\
+})
+
+#define MAX_DEGREE (100)
 
 typedef int64_t Key_t;
 
@@ -22,13 +28,14 @@ typedef struct FibNode {
 typedef struct FibHeap {
     FibNode* min;
     uint64_t size;
-
-    FibNode* tmp_arr;
-    uint64_t tmp_arr_size;
 } FibHeap;
 
 FibHeap*    fibHeapCtor();
+FibHeap*    fibHeapInit(Key_t key);
 void        fibHeapDtor(FibHeap* heap);
+
+/*Merging into the first heap*/
+void        fibHeapMerge(FibHeap* first, FibHeap* second);
 void        fibHeapDump(const FibHeap* heap);
 uint64_t    fibHeapGetSize(const FibHeap* heap);
 
