@@ -2,10 +2,10 @@
 
 static inline FibNode*  fibNodeInit(Key_t key);
 static inline void      fibNodeUnionLists(FibNode* first, FibNode* second);
-static inline FibHeap*  fibHeapMinChildToHeap(FibHeap* heap);
 static inline void      fibHeapConsolidate(FibHeap* heap);
-static inline void      fibHeapNodeLink(FibHeap* heap, FibNode* first, FibNode* second);
+static inline void      fibNodeLink(FibNode* first, FibNode* second);
 static inline void      fibNodeUntie(FibNode* node);
+static inline void      fibNodeFixate(FibNode* node);
 
 FibHeap* fibHeapCtor() {
     FibHeap* heap = calloc(1, sizeof(FibHeap));
@@ -42,19 +42,12 @@ void fibHeapExtMin(FibHeap* heap) {
     if(heap->size == 0) {
         return;
     }
-
-    /*If there is only one element in the heap, we extract it*/
+    
     if(heap->size == 1) {
-        free(heap->min);
+        heap->min = NULL;
         heap->size = 0;
         return;
     }
-
-    /*Creating a separate pile from the children of the minimum node*/
-    FibHeap* temp_heap = fibHeapMinChildToHeap(heap->min);
-
-    /*Memorizing the minimum node (for deletion)*/
-    FibNode* delete_node = heap->min;
 
     /*Reconnecting the heap elements*/
     /*
@@ -62,14 +55,16 @@ void fibHeapExtMin(FibHeap* heap) {
         since min does not indicate the minimum element, 
         this will be corrected in Consolidate
     */
+    FibNode* delete_node = heap->min; 
+    if(heap->min->child != NULL)
+        fibNodeUnionLists(heap->min, heap->min->child);
+
     fibNodeUntie(heap->min);
     heap->min = heap->min->right;
 
     /*Freeing up the memory of the minimum element*/
     free(delete_node);
-
-    /*Сombining the root lists*/
-    fibHeapMerge(heap, temp_heap);
+    heap->size--;
 
     /*Restoring the heap*/
     fibHeapConsolidate(heap);
@@ -140,48 +135,54 @@ static inline void fibNodeUnionLists(FibNode* first, FibNode* second) {
     second->right = first;
 }
 
-static inline FibHeap* fibHeapMinChildToHeap(FibHeap* heap) {
-    assert(heap != NULL);
-    assert(heap->min != NULL);
-    assert(heap->min->child != NULL);
-
-    FibHeap* new_heap = fibHeapCtor();
-    new_heap->min = heap->min->child;
-    new_heap->size = heap->min->degree;
-    new_heap->min->parent = NULL;
-    
-    heap->size -= new_heap->size;
-    heap->min->child = NULL;
-
-    return new_heap;
-}
-
 static inline void fibHeapConsolidate(FibHeap* heap) {
     assert(heap != NULL);
 
     /*!!! FIX LATAER*/
     FibNode* arr_nodes[MAX_DEGREE] = {};
     FibNode* currnet_node = heap->min;
-    
-    uint64_t degree = 0;
 
-    do {
-        degree = currnet_node->degree;
-        while(arr_nodes[degree] != NULL) {
-
+    while(currnet_node != arr_nodes[currnet_node->degree]) {
+        currnet_node->parent = NULL;
+        /*COMPARATOR*/
+        if(heap->min->key > currnet_node->key)
+            heap->min = currnet_node;
+        while(arr_nodes[currnet_node->degree] != NULL) {
+            /*COMPARATOR*/
+            if(currnet_node->key > arr_nodes[currnet_node->degree]->key)
+                swap(currnet_node, arr_nodes[currnet_node->degree]);
+            fibNodeLink(currnet_node, arr_nodes[currnet_node->degree]);
+            arr_nodes[currnet_node->degree - 1] = NULL;
         }
-        arr_nodes[degree] = currnet_node;
+        arr_nodes[currnet_node->degree] = currnet_node;
         currnet_node = currnet_node->right;
-    } while(currnet_node != heap->min);
-
+    }
 }
 
-inline void fibHeapNodeLink(FibHeap* heap, FibNode* first, FibNode* second) {
+static inline void fibNodeLink(FibNode* first, FibNode* second) {
+    fibNodeUntie(second);
+    fibNodeFixate(second);
+    
+    if(first->child == NULL)
+        first->child = second;
+    else
+        fibNodeUnionLists(first->child, second);
 
+    first->degree++;
+
+    second->parent = first;
 }
 
-inline void fibNodeUntie(FibNode* node) {
+static inline void fibNodeUntie(FibNode* node) {
     assert(node != NULL);
+    //assert(node->parent == NULL);
+
     node->left->right = node->right;
     node->right->left = node->left;
+}
+
+static inline void fibNodeFixate(FibNode* node) {
+    assert(node != NULL);
+    node->left = node;
+    node->right = node;
 }

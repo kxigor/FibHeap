@@ -3,6 +3,7 @@
 
 #include <assert.h>
 #include <malloc.h>
+#include <stdbool.h>
 #include <stdint.h>
 
 #define min(a, b) ({\
