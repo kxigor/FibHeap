@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 typedef struct FibHeap FibHeap;
 typedef struct FibNode FibNode;

@@ -6,6 +6,8 @@ static inline void      fibHeapConsolidate(FibHeap* heap);
 static inline void      fibNodeLink(FibNode* first, FibNode* second);
 static inline void      fibNodeUntie(FibNode* node);
 static inline void      fibNodeFixate(FibNode* node);
+static inline void      fibHeapCut(FibHeap* heap, FibNode* node);
+static inline void      fibHeapСascadingCut(FibHeap* heap, FibNode* node);
 
 FibHeap* fibHeapCtor() {
     FibHeap* heap = calloc(1, sizeof(FibHeap));
@@ -42,7 +44,7 @@ void fibHeapExtMin(FibHeap* heap) {
     if(heap->size == 0) {
         return;
     }
-    
+
     if(heap->size == 1) {
         heap->min = NULL;
         heap->size = 0;
@@ -70,6 +72,24 @@ void fibHeapExtMin(FibHeap* heap) {
     fibHeapConsolidate(heap);
 }
 
+void fibHeapOverrideKey(FibHeap* heap, FibNode* node, Key_t new_key) {
+    assert(heap != NULL);
+    assert(node != NULL);
+
+    node->key = new_key;
+
+    if(node->parent == NULL) {
+        if(heap->min->key > node->key)
+            heap->min = node;
+    } else {
+        if(node->parent->key > node->key) {
+            FibNode* parent = node->parent;
+            fibHeapCut(heap, node);
+            fibHeapСascadingCut(heap, parent);
+        }
+    }
+}
+
 FibNode* fibHeapIns(FibHeap* heap, Key_t key) {
     assert(heap != NULL);
 
@@ -77,6 +97,14 @@ FibNode* fibHeapIns(FibHeap* heap, Key_t key) {
     FibNode* temp_node = temp_heap->min;
     fibHeapMerge(heap, temp_heap);
     return temp_node;
+}
+
+void fibHeapDel(FibHeap* heap, FibNode* node) {
+    assert(heap != NULL);
+    assert(node != NULL);
+    Key_t new_key = heap->min->key - 1;
+    fibHeapOverrideKey(heap, node, new_key);
+    fibHeapExtMin(heap);
 }
 
 void fibHeapMerge(FibHeap* first, FibHeap* second) {
@@ -185,4 +213,37 @@ static inline void fibNodeFixate(FibNode* node) {
     assert(node != NULL);
     node->left = node;
     node->right = node;
+}
+
+static inline void fibHeapCut(FibHeap* heap, FibNode* node) {
+    assert(heap != NULL);
+    assert(node != NULL);
+    assert(node->parent != NULL);
+
+    node->mark = false;
+
+    node->parent->degree--;
+
+    if(node->parent->child == node) {
+        if(node == node->left)
+            node->parent->child = NULL;
+        else
+            node->parent->child = node->left;
+    }
+
+    fibNodeUntie(node);
+    fibNodeFixate(node);
+    node->parent = NULL;
+    fibNodeUnionLists(heap->min, node);
+}
+
+static inline void fibHeapСascadingCut(FibHeap* heap, FibNode* node) {
+    assert(heap != NULL);
+    assert(node != NULL);
+
+    while(node->mark == true && node->parent != NULL) {
+        fibHeapCut(heap, node);
+        node = node->parent;
+    }
+    node->mark = true;
 }

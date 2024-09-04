@@ -45,13 +45,14 @@ void        fibHeapDtor(FibHeap* heap);
 
 /*Merging into the first heap*/
 void        fibHeapMerge(FibHeap* first, FibHeap* second);
-void        fibHeapDump(const FibHeap* heap);
 uint64_t    fibHeapGetSize(const FibHeap* heap);
 
 FibNode*    fibHeapGetMin(const FibHeap* heap);
 void        fibHeapExtMin(FibHeap* heap);
 
+void        fibHeapOverrideKey(FibHeap* heap, FibNode* node, Key_t new_key);
+
 FibNode*    fibHeapIns(FibHeap* heap, Key_t key);
-void        fibHeapDel(FibNode* node);
+void        fibHeapDel(FibHeap* heap, FibNode* node);
 
 #endif // !FIBHEAP_H

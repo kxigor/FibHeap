@@ -9,7 +9,7 @@ static void generateDot(FibHeap* heap, FibNode* current, FILE* file) {
     do {
         fprintf(file, "  n%p [label=\"%ld\"];\n", current, current->key);
         if(current == heap->min)
-            fprintf(file, "  n%p [color=red];\n", current, current->key);
+            fprintf(file, "  n%p [color=red];\n", current);
         fprintf(file, "  n%p -> n%p [color=blue];\n", current, current->right);
         fprintf(file, "  n%p -> n%p [color=green];\n", current, current->left);
         current = current->right;

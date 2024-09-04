@@ -1,4 +1,33 @@
 digraph G {
  rankdir=TB;
  node [shape=box];
+{ rank=same;   n0x606000000440 [label="4"];
+  n0x606000000440 [color=red];
+  n0x606000000440 -> n0x606000000380 [color=blue];
+  n0x606000000440 -> n0x606000000200 [color=green];
+  n0x606000000380 [label="10"];
+  n0x606000000380 -> n0x606000000200 [color=blue];
+  n0x606000000380 -> n0x606000000440 [color=green];
+  n0x606000000200 [label="6"];
+  n0x606000000200 -> n0x606000000440 [color=blue];
+  n0x606000000200 -> n0x606000000380 [color=green];
+}
+  n0x606000000380 -> n0x6060000003e0 [color=black];
+{ rank=same;   n0x6060000003e0 [label="11"];
+  n0x6060000003e0 -> n0x6060000003e0 [color=blue];
+  n0x6060000003e0 -> n0x6060000003e0 [color=green];
+}
+  n0x606000000200 -> n0x606000000260 [color=black];
+{ rank=same;   n0x606000000260 [label="7"];
+  n0x606000000260 -> n0x6060000002c0 [color=blue];
+  n0x606000000260 -> n0x6060000002c0 [color=green];
+  n0x6060000002c0 [label="8"];
+  n0x6060000002c0 -> n0x606000000260 [color=blue];
+  n0x6060000002c0 -> n0x606000000260 [color=green];
+}
+  n0x6060000002c0 -> n0x606000000320 [color=black];
+{ rank=same;   n0x606000000320 [label="9"];
+  n0x606000000320 -> n0x606000000320 [color=blue];
+  n0x606000000320 -> n0x606000000320 [color=green];
+}
 }
