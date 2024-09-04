@@ -11,6 +11,14 @@
     (_a > _b ? _a : _b);\
 })
 
+#define swap(a, b)\
+    do {\
+        __typeof__ (a) temp = (a);\
+        a = b;\
+        b = temp;\
+    } while (0)\
+
+
 #define MAX_DEGREE (100)
 
 typedef int64_t Key_t;

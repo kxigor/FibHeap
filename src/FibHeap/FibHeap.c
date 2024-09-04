@@ -1,8 +1,11 @@
 #include "FibHeap.h"
 
 static inline FibNode*  fibNodeInit(Key_t key);
+static inline void      fibNodeUnionLists(FibNode* first, FibNode* second);
 static inline FibHeap*  fibHeapMinChildToHeap(FibHeap* heap);
 static inline void      fibHeapConsolidate(FibHeap* heap);
+static inline void      fibHeapNodeLink(FibHeap* heap, FibNode* first, FibNode* second);
+static inline void      fibNodeUntie(FibNode* node);
 
 FibHeap* fibHeapCtor() {
     FibHeap* heap = calloc(1, sizeof(FibHeap));
@@ -59,8 +62,7 @@ void fibHeapExtMin(FibHeap* heap) {
         since min does not indicate the minimum element, 
         this will be corrected in Consolidate
     */
-    heap->min->left->right = heap->min->right;
-    heap->min->right->left = heap->min->left;
+    fibNodeUntie(heap->min);
     heap->min = heap->min->right;
 
     /*Freeing up the memory of the minimum element*/
@@ -69,7 +71,8 @@ void fibHeapExtMin(FibHeap* heap) {
     /*Сombining the root lists*/
     fibHeapMerge(heap, temp_heap);
 
-
+    /*Restoring the heap*/
+    fibHeapConsolidate(heap);
 }
 
 FibNode* fibHeapIns(FibHeap* heap, Key_t key) {
@@ -99,11 +102,8 @@ void fibHeapMerge(FibHeap* first, FibHeap* second) {
         return;
     }
 
-    /*Carefully reconnect the nodes*/
-    first->min->left->right = second->min->right;
-    second->min->right->left = first->min->left;
-    first->min->left = second->min;
-    second->min->right = first->min;
+    /*Reconnect the nodes*/
+    fibNodeUnionLists(first->min, second->min);
 
     /*COMPARATOR*/
     if(first->min->key > second->min->key)
@@ -129,6 +129,17 @@ static inline FibNode* fibNodeInit(Key_t key) {
     return node;
 }
 
+static inline void fibNodeUnionLists(FibNode* first, FibNode* second) {
+    assert(first != NULL);
+    assert(second != NULL);
+
+    /*Carefully reconnect the nodes*/
+    first->left->right = second->right;
+    second->right->left = first->left;
+    first->left = second;
+    second->right = first;
+}
+
 static inline FibHeap* fibHeapMinChildToHeap(FibHeap* heap) {
     assert(heap != NULL);
     assert(heap->min != NULL);
@@ -148,6 +159,7 @@ static inline FibHeap* fibHeapMinChildToHeap(FibHeap* heap) {
 static inline void fibHeapConsolidate(FibHeap* heap) {
     assert(heap != NULL);
 
+    /*!!! FIX LATAER*/
     FibNode* arr_nodes[MAX_DEGREE] = {};
     FibNode* currnet_node = heap->min;
     
@@ -156,9 +168,20 @@ static inline void fibHeapConsolidate(FibHeap* heap) {
     do {
         degree = currnet_node->degree;
         while(arr_nodes[degree] != NULL) {
-            
+
         }
+        arr_nodes[degree] = currnet_node;
         currnet_node = currnet_node->right;
     } while(currnet_node != heap->min);
 
+}
+
+inline void fibHeapNodeLink(FibHeap* heap, FibNode* first, FibNode* second) {
+
+}
+
+inline void fibNodeUntie(FibNode* node) {
+    assert(node != NULL);
+    node->left->right = node->right;
+    node->right->left = node->left;
 }
