@@ -1,43 +1,22 @@
 #include "Graph.h"
+
 #include "../FibHeap/FibHeap.h"
 
 static void generateDot(FibHeap* heap, FibNode* node, FILE* file);
 
-static void generateDot(FibHeap* heap, FibNode* current, FILE* file) {
-    FibNode* start_pos = current;
-    fprintf(file, "{ rank=same; ");
-    do {
-        fprintf(file, "  n%p [label=\"%ld\"];\n", current, current->key);
-        if(current == heap->min)
-            fprintf(file, "  n%p [color=red];\n", current);
-        fprintf(file, "  n%p -> n%p [color=blue];\n", current, current->right);
-        fprintf(file, "  n%p -> n%p [color=green];\n", current, current->left);
-        current = current->right;
-    } while (current != start_pos);
-    fprintf(file, "}\n");
-
-    current = start_pos;
-    do {
-        if(current->child != NULL) {
-            fprintf(file, "  n%p -> n%p [color=black];\n", current, current->child);
-            generateDot(heap, current->child, file);
-        }
-        current = current->right;
-    } while (current != start_pos);
-}
-
-
 void generateFibHeapDot(FibHeap* heap) {
     FILE* file = fopen("fib_heap.dot", "w");
 
-    if (!file) {
-        perror("Unable to open file");
+    if (file == NULL) {
+        perror("Unable to open file!");
         return;
     }
 
     fprintf(file, "digraph G {\n");
-    fprintf(file, " rankdir=TB;\n");
-    fprintf(file, " node [shape=box];\n");
+    fprintf(file, "labelloc=\"t\"\n");
+    fprintf(file, "label=\"ASM Fibonacci heap by KXI\"\n");
+    fprintf(file, "rankdir=TB;\n");
+    fprintf(file, "node [shape=box];\n");
 
     if (heap->min)
         generateDot(heap, heap->min, file);
@@ -45,4 +24,29 @@ void generateFibHeapDot(FibHeap* heap) {
     fprintf(file, "}\n");
     fclose(file);
     system("dot -Tpng fib_heap.dot -o fib_heap.png");
+}
+
+static void generateDot(FibHeap* heap, FibNode* start_pos, FILE* file) {
+
+    FibNode* current = start_pos;
+
+    fprintf(file, "{ rank=same; ");
+    do {
+        fprintf(file, "n%p [label=\"key=%ld\naddr=%p\"];\n", current, current->key, current);
+        if(current == heap->min)
+            fprintf(file, "n%p [color=red];\n", current);
+        fprintf(file, "n%p -> n%p [color=blue];\n", current, current->right);
+        fprintf(file, "n%p -> n%p [color=green];\n", current, current->left);
+        current = current->right;
+    } while (current != start_pos);
+    fprintf(file, "}\n");
+
+    current = start_pos;
+    do {
+        if(current->child != NULL) {
+            fprintf(file, "n%p -> n%p [color=black];\n", current, current->child);
+            generateDot(heap, current->child, file);
+        }
+        current = current->right;
+    } while (current != start_pos);
 }

@@ -5,6 +5,7 @@
 #include <malloc.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 
 #define min(a, b) ({\
     __typeof__ (a) _a = (a);\
@@ -20,7 +21,7 @@
     } while (0)\
 
 
-#define MAX_DEGREE (100)
+#define CONSOLIDATE_ARRAY_START_SIZE (50000)
 
 typedef int64_t Key_t;
 
@@ -37,6 +38,8 @@ typedef struct FibNode {
 typedef struct FibHeap {
     FibNode* min;
     uint64_t size;
+
+    FibNode** consolidate_array;
 } FibHeap;
 
 FibHeap*    fibHeapCtor();

@@ -8,10 +8,13 @@ static inline void      fibNodeUntie(FibNode* node);
 static inline void      fibNodeFixate(FibNode* node);
 static inline void      fibHeapCut(FibHeap* heap, FibNode* node);
 static inline void      fibHeapСascadingCut(FibHeap* heap, FibNode* node);
+static        void      fibNodeDtor(FibNode* node);
 
 FibHeap* fibHeapCtor() {
     FibHeap* heap = calloc(1, sizeof(FibHeap));
     assert(heap != NULL);
+    heap->consolidate_array = calloc(CONSOLIDATE_ARRAY_START_SIZE, sizeof(FibNode*));
+    assert(heap->consolidate_array != NULL);
     return heap;
 }
 
@@ -24,6 +27,8 @@ FibHeap* fibHeapInit(Key_t key) {
 
 void fibHeapDtor(FibHeap* heap) {
     assert(heap != NULL);
+    free(heap->consolidate_array);
+    fibNodeDtor(heap->min);
     free(heap);
 }
 
@@ -46,6 +51,7 @@ void fibHeapExtMin(FibHeap* heap) {
     }
 
     if(heap->size == 1) {
+        free(heap->min);
         heap->min = NULL;
         heap->size = 0;
         return;
@@ -78,25 +84,34 @@ void fibHeapOverrideKey(FibHeap* heap, FibNode* node, Key_t new_key) {
 
     node->key = new_key;
 
-    if(node->parent == NULL) {
-        if(heap->min->key > node->key)
-            heap->min = node;
-    } else {
+    if(node->parent != NULL) {
         if(node->parent->key > node->key) {
             FibNode* parent = node->parent;
             fibHeapCut(heap, node);
             fibHeapСascadingCut(heap, parent);
         }
     }
+    if(heap->min->key > node->key)
+        heap->min = node;
 }
 
 FibNode* fibHeapIns(FibHeap* heap, Key_t key) {
     assert(heap != NULL);
-
-    FibHeap* temp_heap = fibHeapInit(key); 
-    FibNode* temp_node = temp_heap->min;
-    fibHeapMerge(heap, temp_heap);
-    return temp_node;
+    /*
+        I partially repeat what is written in merge, 
+        but this is how I try to get rid of creating 
+        a new heap in order to improve performance
+    */
+    FibNode* new_node = fibNodeInit(key);
+    if(heap->size == 0) {
+        heap->min = new_node;
+    } else {
+        fibNodeUnionLists(heap->min, new_node);
+        if(heap->min->key > new_node->key)
+            heap->min = new_node;
+    }
+    heap->size++;
+    return new_node;
 }
 
 void fibHeapDel(FibHeap* heap, FibNode* node) {
@@ -166,25 +181,42 @@ static inline void fibNodeUnionLists(FibNode* first, FibNode* second) {
 static inline void fibHeapConsolidate(FibHeap* heap) {
     assert(heap != NULL);
 
-    /*!!! FIX LATAER*/
-    FibNode* arr_nodes[MAX_DEGREE] = {};
     FibNode* currnet_node = heap->min;
-
-    while(currnet_node != arr_nodes[currnet_node->degree]) {
+    FibNode* next_node = NULL;
+    //FibNode* arr_nodes[100] = {};
+    while(currnet_node != heap->consolidate_array[currnet_node->degree]) {
         currnet_node->parent = NULL;
         /*COMPARATOR*/
         if(heap->min->key > currnet_node->key)
             heap->min = currnet_node;
-        while(arr_nodes[currnet_node->degree] != NULL) {
+        /*
+            Our task is to go through all the root nodes, 
+            if it happens that we hang the current node somewhere, 
+            then we will go through the elements a second time. 
+            So you need to keep a pointer to the next element
+        */
+        next_node = currnet_node->right;
+        while(heap->consolidate_array[currnet_node->degree] != NULL) {
             /*COMPARATOR*/
-            if(currnet_node->key > arr_nodes[currnet_node->degree]->key)
-                swap(currnet_node, arr_nodes[currnet_node->degree]);
-            fibNodeLink(currnet_node, arr_nodes[currnet_node->degree]);
-            arr_nodes[currnet_node->degree - 1] = NULL;
+            if(currnet_node->key > heap->consolidate_array[currnet_node->degree]->key)
+                swap(currnet_node, heap->consolidate_array[currnet_node->degree]);
+            /*
+
+            */
+            if(next_node == heap->consolidate_array[currnet_node->degree])
+                next_node = next_node->right;
+            fibNodeLink(currnet_node, heap->consolidate_array[currnet_node->degree]);
+            heap->consolidate_array[currnet_node->degree - 1] = NULL;
         }
-        arr_nodes[currnet_node->degree] = currnet_node;
-        currnet_node = currnet_node->right;
+        heap->consolidate_array[currnet_node->degree] = currnet_node;
+        currnet_node = next_node;
     }
+
+    currnet_node = heap->min;
+    do {
+        heap->consolidate_array[currnet_node->degree] = NULL;
+        currnet_node = currnet_node->right;
+    } while(currnet_node != heap->min);
 }
 
 static inline void fibNodeLink(FibNode* first, FibNode* second) {
@@ -241,9 +273,29 @@ static inline void fibHeapСascadingCut(FibHeap* heap, FibNode* node) {
     assert(heap != NULL);
     assert(node != NULL);
 
-    while(node->mark == true && node->parent != NULL) {
+    FibNode* parent = node->parent;
+
+    while(parent != NULL) {
+        if(node->mark == false) {
+            node->mark = true;
+            break;
+        }
         fibHeapCut(heap, node);
-        node = node->parent;
+        node = parent;
+        parent = node->parent;
     }
     node->mark = true;
+}
+
+static void fibNodeDtor(FibNode* start_node) {
+    if(start_node == NULL)
+        return;
+    FibNode* node = start_node;
+    FibNode* del_node = NULL;
+    do {
+        fibNodeDtor(node->child);
+        del_node = node;
+        node = node->right;
+        free(del_node);
+    } while(node != start_node);
 }

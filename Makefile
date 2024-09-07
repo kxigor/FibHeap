@@ -1,9 +1,14 @@
 # Compiler
 CC = gcc
+CPP = g++
 ASM = nasm
 
 # Program name
 PNAME = fib.o
+# Tests generator name
+TNAME = gen.o
+# Answer generator name
+ANAME = ans.o
 
 # Flags
 CFLAGS = -z noexecstack
@@ -31,16 +36,34 @@ SRCS += src/Graph/Graph.c
 OBJS  = $(SRCS:.c=.o)
 #OBJS += $(SRCS_ASM:.asm=.o)
 
+ANSWER_GENERATOR_SRCS = src/Testing/AnswersGenerator.cpp
+ANSWER_GENERATOR_OBJS = $(ANSWER_GENERATOR_SRCS:.cpp=.o)
+
+TEST_GENERATOR_SRCS = src/Testing/TestGenerator.c
+TEST_GENERATOR_OBJS = $(TEST_GENERATOR_SRCS:.c=.o)
+
+TESTING_SH = src/Testing/testsing.sh
+TESTING_SH_PARAMS = -n 10000000 -s 1000000 # For example: -n 100000 -s 100
+
 %.o: %.c
 	@mkdir -p $(dir $(OBJ_DIR)/$@)
 	@$(CC) $(CFLAGS) $(GDBFLAGS) -c $< -o $(OBJ_DIR)/$@ -lm
+
+%.o: %.cpp
+	@mkdir -p $(dir $(OBJ_DIR)/$@)
+	@$(CPP) $(CFLAGS) $(GDBFLAGS) -c $< -o $(OBJ_DIR)/$@ -lm
 
 #%.o: %.asm
 #	@mkdir -p $(dir $(OBJ_DIR)/$@)
 #	@$(ASM) -f elf64 $(GDBFLAGS) $< -o $(OBJ_DIR)/$@
 
-$(PNAME): $(OBJS)
-	@$(CC) $(CFLAGS) $(patsubst %,obj/%,$(OBJS)) -o $@ -lm -no-pie
+compile: $(OBJS) $(TEST_GENERATOR_OBJS) $(ANSWER_GENERATOR_OBJS)
+	@$(CC)  $(CFLAGS) $(patsubst %,obj/%,$(OBJS)) 					-o $(PNAME)
+	@$(CC)  $(CFLAGS) $(patsubst %,obj/%,$(TEST_GENERATOR_OBJS)) 	-o $(TNAME)
+	@$(CPP) $(CFLAGS) $(patsubst %,obj/%,$(ANSWER_GENERATOR_OBJS)) 	-o $(ANAME)
+
+testing: 
+	@$(TESTING_SH) $(TESTING_SH_PARAMS)
 
 clean:
-	@rm -rf $(OBJ_DIR) $(PNAME)
+	@rm -rf $(OBJ_DIR) $(PNAME) $(TNAME) $(ANAME)
