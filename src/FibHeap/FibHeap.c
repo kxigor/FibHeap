@@ -183,7 +183,6 @@ static inline void fibHeapConsolidate(FibHeap* heap) {
 
     FibNode* currnet_node = heap->min;
     FibNode* next_node = NULL;
-    //FibNode* arr_nodes[100] = {};
     while(currnet_node != heap->consolidate_array[currnet_node->degree]) {
         currnet_node->parent = NULL;
         /*COMPARATOR*/
