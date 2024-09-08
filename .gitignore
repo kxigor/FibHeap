@@ -53,3 +53,10 @@ dkms.conf
 
 # VSCODE
 .vscode
+
+# DOCS
+docs
+
+# Trash
+./fib_heap.png
+./fib_heap.dot

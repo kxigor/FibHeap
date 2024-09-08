@@ -1,5 +1,11 @@
 #include "FibHeap.h"
 
+/*!
+ * \defgroup techdetails Technical Details
+ * \brief Detailed technical information for developers.
+ * @{
+ */
+
 /**
  * @brief Create a new FibNode with an initialized element.
  * 
@@ -7,53 +13,7 @@
  * @return A pointer to the newly created FibNode with an initial key.
  */
 static inline FibNode* fibNodeInit(Key_t key);
-/**
- * @brief Union two FibNode lists.
- * 
- * @param first The first node to union.
- * @param second The second node to union.
- */
-static inline void fibNodeUnionLists(FibNode* first, FibNode* second);
-/**
- * @brief Consolidate the Fibonacci heap.
- * 
- * @param heap The Fibonacci heap to be consolidated.
- */
-static inline void fibHeapConsolidate(FibHeap* heap);
-/**
- * @brief Link the second node to the first node childs.
- * 
- * @param first The node to which they link.
- * @param second The node that is linked.
- */
-static inline void fibNodeLink(FibNode* first, FibNode* second);
-/**
- * @brief Untie the node from its list.
- * 
- * @param node The node to be untied.
- * @warning If there is only one node in the list, then a bug will occur
- */
-static inline void fibNodeUntie(FibNode* node);
-/**
- * @brief Loop the node on itself.
- * 
- * @param node The node that will be looped.
- */
-static inline void fibNodeFixate(FibNode* node);
-/**
- * @brief Procedure cutting node from its list and link to root list.
- * 
- * @param heap The heap from which the node will be cut and link into the root list.
- * @param node The node to be cut.
- */
-static inline void fibHeapCut(FibHeap* heap, FibNode* node);
-/**
- * @brief Perform cascading cut on a node in the Fibonacci heap.
- * 
- * @param The Fibonacci heap in which the cascading cut is performed.
- * @param node The starting node for the cascading cut.
- */
-static inline void fibHeapСascadingCut(FibHeap* heap, FibNode* node);
+
 /**
  * @brief Destroy a Fibonacci node and free its resources.
  *
@@ -61,7 +21,61 @@ static inline void fibHeapСascadingCut(FibHeap* heap, FibNode* node);
  */
 static void fibNodeDtor(FibNode* node);
 
-FibHeap* fibHeapCtor() {
+/**
+ * @brief Union two FibNode lists.
+ * 
+ * @param first The first node to union.
+ * @param second The second node to union.
+ */
+static inline void fibNodeUnionLists(FibNode* first, FibNode* second);
+
+/**
+ * @brief Consolidate the Fibonacci heap.
+ * 
+ * @param heap The Fibonacci heap to be consolidated.
+ */
+static inline void fibHeapConsolidate(FibHeap* heap);
+
+/**
+ * @brief Link the second node to the first node childs.
+ * 
+ * @param first The node to which they link.
+ * @param second The node that is linked.
+ */
+static inline void fibNodeLink(FibNode* first, FibNode* second);
+
+/**
+ * @brief Untie the node from its list.
+ * 
+ * @param node The node to be untied.
+ * @warning If there is only one node in the list, then a bug will occur
+ */
+static inline void fibNodeUntie(FibNode* node);
+
+/**
+ * @brief Loop the node on itself.
+ * 
+ * @param node The node that will be looped.
+ */
+static inline void fibNodeFixate(FibNode* node);
+
+/**
+ * @brief Procedure cutting node from its list and link to root list.
+ * 
+ * @param heap The heap from which the node will be cut and link into the root list.
+ * @param node The node to be cut.
+ */
+static void fibHeapCut(FibHeap* heap, FibNode* node);
+
+/**
+ * @brief Perform cascading cut on a node in the Fibonacci heap.
+ * 
+ * @param The Fibonacci heap in which the cascading cut is performed.
+ * @param node The starting node for the cascading cut.
+ */
+static void fibHeapСascadingCut(FibHeap* heap, FibNode* node);
+
+FibHeap* fibHeapCtor(void) {
     FibHeap* heap = calloc(1, sizeof(FibHeap));
     assert(heap != NULL);
     heap->consolidate_array = calloc(CONSOLIDATE_ARRAY_START_SIZE, sizeof(FibNode*));
@@ -83,9 +97,31 @@ void fibHeapDtor(FibHeap* heap) {
     free(heap);
 }
 
-uint64_t fibHeapGetSize(const FibHeap* heap) {
+FibNode* fibHeapIns(FibHeap* heap, Key_t key) {
     assert(heap != NULL);
-    return heap->size;
+    /*
+        I partially repeat what is written in merge, 
+        but this is how I try to get rid of creating 
+        a new heap in order to improve performance.
+    */
+    FibNode* new_node = fibNodeInit(key);
+    if(heap->size == 0) {
+        heap->min = new_node;
+    } else {
+        fibNodeUnionLists(heap->min, new_node);
+        if(heap->min->key > new_node->key)
+            heap->min = new_node;
+    }
+    heap->size++;
+    return new_node;
+}
+
+void fibHeapDel(FibHeap* heap, FibNode* node) {
+    assert(heap != NULL);
+    assert(node != NULL);
+    Key_t new_key = heap->min->key - 1;
+    fibHeapOverrideKey(heap, node, new_key);
+    fibHeapExtMin(heap);
 }
 
 FibNode* fibHeapGetMin(const FibHeap* heap) {
@@ -112,7 +148,7 @@ void fibHeapExtMin(FibHeap* heap) {
     /*
         The heap is incorrect at this point, 
         since min does not indicate the minimum element, 
-        this will be corrected in Consolidate
+        this will be corrected in Consolidate.
     */
     FibNode* delete_node = heap->min; 
     if(heap->min->child != NULL)
@@ -127,50 +163,6 @@ void fibHeapExtMin(FibHeap* heap) {
 
     /*Restoring the heap*/
     fibHeapConsolidate(heap);
-}
-
-void fibHeapOverrideKey(FibHeap* heap, FibNode* node, Key_t new_key) {
-    assert(heap != NULL);
-    assert(node != NULL);
-
-    node->key = new_key;
-
-    if(node->parent != NULL) {
-        if(node->parent->key > node->key) {
-            FibNode* parent = node->parent;
-            fibHeapCut(heap, node);
-            fibHeapСascadingCut(heap, parent);
-        }
-    }
-    if(heap->min->key > node->key)
-        heap->min = node;
-}
-
-FibNode* fibHeapIns(FibHeap* heap, Key_t key) {
-    assert(heap != NULL);
-    /*
-        I partially repeat what is written in merge, 
-        but this is how I try to get rid of creating 
-        a new heap in order to improve performance
-    */
-    FibNode* new_node = fibNodeInit(key);
-    if(heap->size == 0) {
-        heap->min = new_node;
-    } else {
-        fibNodeUnionLists(heap->min, new_node);
-        if(heap->min->key > new_node->key)
-            heap->min = new_node;
-    }
-    heap->size++;
-    return new_node;
-}
-
-void fibHeapDel(FibHeap* heap, FibNode* node) {
-    assert(heap != NULL);
-    assert(node != NULL);
-    Key_t new_key = heap->min->key - 1;
-    fibHeapOverrideKey(heap, node, new_key);
-    fibHeapExtMin(heap);
 }
 
 void fibHeapMerge(FibHeap* first, FibHeap* second) {
@@ -205,6 +197,28 @@ void fibHeapMerge(FibHeap* first, FibHeap* second) {
     free(second);
 }
 
+uint64_t fibHeapGetSize(const FibHeap* heap) {
+    assert(heap != NULL);
+    return heap->size;
+}
+
+void fibHeapOverrideKey(FibHeap* heap, FibNode* node, Key_t new_key) {
+    assert(heap != NULL);
+    assert(node != NULL);
+
+    node->key = new_key;
+
+    if(node->parent != NULL) {
+        if(node->parent->key > node->key) {
+            FibNode* parent = node->parent;
+            fibHeapCut(heap, node);
+            fibHeapСascadingCut(heap, parent);
+        }
+    }
+    if(heap->min->key > node->key)
+        heap->min = node;
+}
+
 static inline FibNode* fibNodeInit(Key_t key) {
     FibNode* node = calloc(1, sizeof(FibNode));
     assert(node != NULL);
@@ -216,6 +230,19 @@ static inline FibNode* fibNodeInit(Key_t key) {
     node->key = key;
 
     return node;
+}
+
+static void fibNodeDtor(FibNode* start_node) {
+    if(start_node == NULL)
+        return;
+    FibNode* node = start_node;
+    FibNode* del_node = NULL;
+    do {
+        fibNodeDtor(node->child);
+        del_node = node;
+        node = node->right;
+        free(del_node);
+    } while(node != start_node);
 }
 
 static inline void fibNodeUnionLists(FibNode* first, FibNode* second) {
@@ -243,7 +270,7 @@ static inline void fibHeapConsolidate(FibHeap* heap) {
             Our task is to go through all the root nodes, 
             if it happens that we hang the current node somewhere, 
             then we will go through the elements a second time. 
-            So you need to keep a pointer to the next element
+            So you need to keep a pointer to the next element.
         */
         next_node = currnet_node->right;
         while(heap->consolidate_array[currnet_node->degree] != NULL) {
@@ -337,15 +364,4 @@ static inline void fibHeapСascadingCut(FibHeap* heap, FibNode* node) {
     node->mark = true;
 }
 
-static void fibNodeDtor(FibNode* start_node) {
-    if(start_node == NULL)
-        return;
-    FibNode* node = start_node;
-    FibNode* del_node = NULL;
-    do {
-        fibNodeDtor(node->child);
-        del_node = node;
-        node = node->right;
-        free(del_node);
-    } while(node != start_node);
-}
+/*! @} */

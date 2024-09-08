@@ -72,3 +72,5 @@ for (( i = 0; i < $NUMBER_OF_TESTS; i++)); do
 done
 
 echo "All tests have been completed successfully!"
+
+rm -f $GEN_TEST_NAME $ANS_NAME $FIB_NAME $DIF_NAME

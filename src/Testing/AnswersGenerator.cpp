@@ -3,31 +3,44 @@
 #include <queue>
 #include <vector>
 
+#include "Testing.h"
+
+/*
+    Let's rather lazily emulate the 
+    actions of the Fibonacci heap
+*/
+void answer_genrator(void);
+
 int main(void) {
-    std::priority_queue<int64_t, std::vector<int64_t>, std::greater<int64_t>> q;
+    answer_genrator();
+}
+
+void answer_genrator(void) {
     std::vector<int64_t>vec;
+    std::vector<int64_t>::iterator it;
 
     int32_t command = 0;
+    int64_t number = 0;
     while(std::cin >> command) {
         switch (command)
         {
-            case 1: {
-                int64_t number = 0;
+            case FIB_INSERT: {
                 std::cin >> number;
                 vec.push_back(number);
                 break;
             }
-            case 2: {
-                auto m = std::min_element(vec.begin(), vec.end());
-                std::cout << *m << '\n';
-                vec.erase(m);
+            case FIB_EXT_MIN: {
+                it = std::min_element(vec.begin(), vec.end());
+                std::cout << *it << '\n';
+                vec.erase(it);
                 break;
             }
-            case 3: {
+            case FIB_DEL_LAST: {
                 vec.pop_back();
             }
-            default:
+            default: {
                 break;
+            }
         }
     }
 }

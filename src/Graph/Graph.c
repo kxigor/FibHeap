@@ -2,6 +2,12 @@
 
 #include "../FibHeap/FibHeap.h"
 
+/*!
+ * \defgroup techdetails Technical Details
+ * \brief Detailed technical information for developers.
+ * @{
+ */
+
 /**
  * @brief Helper function to generate DOT representation of a Fibonacci heap node.
  *
@@ -61,3 +67,5 @@ static void generateDot(FibHeap* heap, FibNode* start_pos, FILE* file) {
         current = current->right;
     } while (current != start_pos);
 }
+
+/*! @} */

@@ -117,7 +117,7 @@ void fibHeapDtor(FibHeap* heap);
  * @return A pointer to the newly inserted node.
  * @warning It is not recommended to modify the node, as it may affect the heap's validity.
  */
-const FibNode* fibHeapIns(FibHeap* heap, Key_t key);
+FibNode* fibHeapIns(FibHeap* heap, Key_t key);
 
 /**
  * @brief Remove a specific node from the Fibonacci heap.
@@ -134,7 +134,7 @@ void fibHeapDel(FibHeap* heap, FibNode* node);
  * @return A pointer to the minimum node of the heap.
  * @warning It is not recommended to modify the node, as it may affect the heap's validity.
  */
-const FibNode* fibHeapGetMin(const FibHeap* heap);
+FibNode* fibHeapGetMin(const FibHeap* heap);
 
 /**
  * @brief Extract the minimum node from the Fibonacci heap.
