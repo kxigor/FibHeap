@@ -5,7 +5,7 @@
 
 #include <sys/time.h>
 
-#include "Testing.h"
+#include "GlobalHeaderTesting.h"
 
 #define TWO_ARGUMENTS (2)
 

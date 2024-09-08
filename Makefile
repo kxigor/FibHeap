@@ -54,6 +54,7 @@ OBJ_DIR = obj
 # Sources
 SRCS  = main.c
 SRCS += src/FibHeap/FibHeap.c
+SRCS += src/Stack/Stack.c
 SRCS += src/Graph/Graph.c
 #SRCS_ASM  = src/radix_asm_uint64/radix_asm_uint64.asm
 #SRCS_ASM += src/radix_asm_flt/radix_asm_flt.asm
@@ -68,8 +69,9 @@ ANSWER_GENERATOR_OBJS = $(ANSWER_GENERATOR_SRCS:.cpp=.o)
 
 # Testing script
 TESTING_SH = src/Testing/testsing.sh
+
 # Optional testing parameters (You can leave it empty)
-OPTIONATESTING_SH_OPTIONAL_PARAMSL = -n 1000 -s 10000 # For example: -n 100000 -s 100
+OPTIONATESTING_SH_OPTIONAL_PARAMSL = -n 10 -s 10000000 # For example: -n 100000 -s 100
 
 %.o: %.c
 	@mkdir -p $(dir $(OBJ_DIR)/$@)

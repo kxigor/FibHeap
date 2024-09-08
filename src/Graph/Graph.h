@@ -28,4 +28,6 @@ typedef struct FibNode FibNode; /**< Forward declaration of the Fibonacci node s
  */
 void generateFibHeapDot(FibHeap* heap);
 
+/*! @} */
+
 #endif // !GRAPH_H

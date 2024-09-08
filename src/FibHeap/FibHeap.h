@@ -8,6 +8,8 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "../Stack/Stack.h"
+
 /*!
     \defgroup fibheap Fibonacci Heap
     \brief A module for managing and operating on Fibonacci heaps.
@@ -46,7 +48,7 @@
  * @brief Maximum size of the heap merge array.
  * @warning The program does not provide overflow checks for this array!
  */
-#define CONSOLIDATE_ARRAY_START_SIZE (50000)
+#define FIB_ARRAY_START_SIZE (50000)
 
 /**
  * @brief Typedef for key type in Fibonacci heap.
@@ -84,7 +86,7 @@ typedef struct FibNode {
 typedef struct FibHeap {
     FibNode* min; /**< Pointer to the minimum node in the heap. */
     uint64_t size; /**< Number of nodes in the heap. */
-    FibNode** consolidate_array; /**< Array for consolidating nodes during heap operations. */
+    FibNode** array; /**< Array for consolidating nodes during heap operations. */
 } FibHeap;
 
 /**
