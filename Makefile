@@ -56,6 +56,7 @@ SRCS  = main.c
 SRCS += src/FibHeap/FibHeap.c
 SRCS += src/Stack/Stack.c
 SRCS += src/Graph/Graph.c
+SRCS += src/Testing/FibTesting.c
 #SRCS_ASM  = src/radix_asm_uint64/radix_asm_uint64.asm
 #SRCS_ASM += src/radix_asm_flt/radix_asm_flt.asm
 ANSWER_GENERATOR_SRCS = src/Testing/AnswersGenerator.cpp
