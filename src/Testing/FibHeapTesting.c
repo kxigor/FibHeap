@@ -1,5 +1,20 @@
-#include "FibTesting.h"
+#include "FibHeapTesting.h"
 
+/**
+ * @brief Deletes a pointer from the stack.
+ *
+ * This function searches for a pointer in the stack and removes it, shifting
+ * the remaining elements one position to the left. If the pointer is not found,
+ * the function returns an error.
+ *
+ * @param stk Pointer to the stack from which the element needs to be removed.
+ * @param ptr Pointer to the element that needs to be deleted.
+ * @return int8_t Result code of the operation:
+ *         - SE_ALL_OK: Successful deletion.
+ *         - SE_POINTER_ERR: Pointer not found in the stack.
+ *
+ * @pre stk must not be NULL, stk->data must not be NULL, ptr must not be NULL.
+ */
 static inline int8_t kludge_stackDelete(Stack* stk, void* ptr);
 
 void testing() {
@@ -30,6 +45,10 @@ void testing() {
             default:
                 break;
         }
+        /*
+            You can uncomment for beautiful graphs, 
+            but the tests will run indefinitely.
+        */
         //generateFibHeapDot(heap);
     }
 
@@ -37,7 +56,7 @@ void testing() {
     fibHeapDtor(heap);
 }
 
-inline int8_t kludge_stackDelete(Stack *stk, void* ptr) {
+static inline int8_t kludge_stackDelete(Stack *stk, void* ptr) {
     assert(stk != NULL);
     assert(stk->data != NULL);
     assert(ptr != NULL);

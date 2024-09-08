@@ -56,15 +56,15 @@ SRCS  = main.c
 SRCS += src/FibHeap/FibHeap.c
 SRCS += src/Stack/Stack.c
 SRCS += src/Graph/Graph.c
-SRCS += src/Testing/FibTesting.c
-#SRCS_ASM  = src/radix_asm_uint64/radix_asm_uint64.asm
-#SRCS_ASM += src/radix_asm_flt/radix_asm_flt.asm
+SRCS += src/Testing/FibHeapTesting.c
+SRCS_ASM  = src/ASM_FibHeap/ASM_FibHeap.asm
 ANSWER_GENERATOR_SRCS = src/Testing/AnswersGenerator.cpp
 TEST_GENERATOR_SRCS = src/Testing/TestGenerator.c
 
 # Objects
 OBJS  = $(SRCS:.c=.o)
-#OBJS += $(SRCS_ASM:.asm=.o)
+OBJS += $(SRCS_ASM:.asm=.o)
+
 TEST_GENERATOR_OBJS = $(TEST_GENERATOR_SRCS:.c=.o)
 ANSWER_GENERATOR_OBJS = $(ANSWER_GENERATOR_SRCS:.cpp=.o)
 

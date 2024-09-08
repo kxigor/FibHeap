@@ -2,8 +2,9 @@
 
 #include "./src/FibHeap/FibHeap.h"
 #include "./src/Graph/Graph.h"
-#include "./src/Testing/FibTesting.h"
+#include "./src/Testing/FibHeapTesting.h"
 
 int32_t main(void) {
+    /*Run the tests*/
     testing();
 }

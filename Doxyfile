@@ -2,7 +2,7 @@ DOXYFILE_ENCODING       = UTF-8
 
 OUTPUT_LANGUAGE         = "English"
 PROJECT_NAME            = "ASM_FibonacciHeap"
-PROJECT_NUMBER          = 0.1
+PROJECT_NUMBER          = 0.2
 PROJECT_BRIEF           = "The project is dedicated to the fibonacci heap (and its various implementations)."
 
 OUTPUT_DIRECTORY        = docs
