@@ -7,9 +7,13 @@ TNAME=
 # Answer generator program name
 ANAME=
 
+# The name of the file with the generated test
 GEN_TEST_NAME="generatedTest.out"
+# The name of the file with the answer to the test
 ANS_NAME="ans.out"
+# The name of the file with the heap output to the test
 FIB_NAME="fib.out"
+# File name comparison of answer and heap inputs
 DIF_NAME="difference.out"
 
 # How many tests will there be (i.e. different runs of the program)
@@ -64,5 +68,7 @@ for (( i = 0; i < $NUMBER_OF_TESTS; i++)); do
         echo "Take a look at the differenceOut!"
         exit 1
     fi
-    echo "Succes!"
+    echo "Success!" $((i+1)) of $NUMBER_OF_TESTS
 done
+
+echo "All tests have been completed successfully!"

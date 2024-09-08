@@ -2,6 +2,17 @@
 
 #include "../FibHeap/FibHeap.h"
 
+/**
+ * @brief Helper function to generate DOT representation of a Fibonacci heap node.
+ *
+ * This static function recursively generates the DOT representation for
+ * the nodes in the heap starting from the given node and writes it to
+ * the specified file.
+ *
+ * @param heap The Fibonacci heap being visualized.
+ * @param node The starting node for the DOT generation.
+ * @param file The file to which the DOT data will be written.
+ */
 static void generateDot(FibHeap* heap, FibNode* node, FILE* file);
 
 void generateFibHeapDot(FibHeap* heap) {

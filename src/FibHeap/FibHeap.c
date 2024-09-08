@@ -1,14 +1,65 @@
 #include "FibHeap.h"
 
-static inline FibNode*  fibNodeInit(Key_t key);
-static inline void      fibNodeUnionLists(FibNode* first, FibNode* second);
-static inline void      fibHeapConsolidate(FibHeap* heap);
-static inline void      fibNodeLink(FibNode* first, FibNode* second);
-static inline void      fibNodeUntie(FibNode* node);
-static inline void      fibNodeFixate(FibNode* node);
-static inline void      fibHeapCut(FibHeap* heap, FibNode* node);
-static inline void      fibHeapСascadingCut(FibHeap* heap, FibNode* node);
-static        void      fibNodeDtor(FibNode* node);
+/**
+ * @brief Create a new FibNode with an initialized element.
+ * 
+ * @param key The key for the new node.
+ * @return A pointer to the newly created FibNode with an initial key.
+ */
+static inline FibNode* fibNodeInit(Key_t key);
+/**
+ * @brief Union two FibNode lists.
+ * 
+ * @param first The first node to union.
+ * @param second The second node to union.
+ */
+static inline void fibNodeUnionLists(FibNode* first, FibNode* second);
+/**
+ * @brief Consolidate the Fibonacci heap.
+ * 
+ * @param heap The Fibonacci heap to be consolidated.
+ */
+static inline void fibHeapConsolidate(FibHeap* heap);
+/**
+ * @brief Link the second node to the first node childs.
+ * 
+ * @param first The node to which they link.
+ * @param second The node that is linked.
+ */
+static inline void fibNodeLink(FibNode* first, FibNode* second);
+/**
+ * @brief Untie the node from its list.
+ * 
+ * @param node The node to be untied.
+ * @warning If there is only one node in the list, then a bug will occur
+ */
+static inline void fibNodeUntie(FibNode* node);
+/**
+ * @brief Loop the node on itself.
+ * 
+ * @param node The node that will be looped.
+ */
+static inline void fibNodeFixate(FibNode* node);
+/**
+ * @brief Procedure cutting node from its list and link to root list.
+ * 
+ * @param heap The heap from which the node will be cut and link into the root list.
+ * @param node The node to be cut.
+ */
+static inline void fibHeapCut(FibHeap* heap, FibNode* node);
+/**
+ * @brief Perform cascading cut on a node in the Fibonacci heap.
+ * 
+ * @param The Fibonacci heap in which the cascading cut is performed.
+ * @param node The starting node for the cascading cut.
+ */
+static inline void fibHeapСascadingCut(FibHeap* heap, FibNode* node);
+/**
+ * @brief Destroy a Fibonacci node and free its resources.
+ *
+ * @param node The node to be destroyed.
+ */
+static void fibNodeDtor(FibNode* node);
 
 FibHeap* fibHeapCtor() {
     FibHeap* heap = calloc(1, sizeof(FibHeap));
