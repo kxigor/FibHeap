@@ -11,5 +11,4 @@ int32_t main(void) {
     printf("sizeof(FibHeap) = %lu\n", sizeof(FibHeap));
     printf("sizeof(FibNode) = %lu\n", sizeof(FibNode));
     FibHeap* asm_heap = ASM_fibHeapCtor();
-    printf("SPILED REGISTERS!!!\n");
 }
