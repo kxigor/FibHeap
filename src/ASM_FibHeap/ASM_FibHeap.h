@@ -1,5 +1,5 @@
-#ifndef FIBHEAP_H
-#define FIBHEAP_H
+#ifndef ASM_FIBHEAP_H
+#define ASM_FIBHEAP_H
 
 #include <assert.h>
 #include <malloc.h>
@@ -63,38 +63,38 @@ typedef int64_t Key_t;
  * 
  * This structure defines the elements of a node in a Fibonacci heap.
  */
-typedef struct FibNode {
+typedef struct ASM_FibNode {
     /** @brief The key value associated with the node. */
     Key_t key;
     /** @brief Pointer to the parent node in the heap. */
-    struct FibNode* parent;
+    struct ASM_FibNode* parent;
     /** @brief Pointer to the left sibling node in the circular doubly linked list. */
-    struct FibNode* left;
+    struct ASM_FibNode* left;
     /** @brief Pointer to the right sibling node in the circular doubly linked list. */
-    struct FibNode* right;
+    struct ASM_FibNode* right;
     /** @brief Pointer to the first child node of this node. */
-    struct FibNode* child;
+    struct ASM_FibNode* child;
     /** @brief The number of children of this node. */
     uint64_t degree;
     /** @brief A boolean flag indicating whether the node has lost a child since it was last made a child of another node. */
     uint8_t mark;
-} FibNode;
+} ASM_FibNode;
 
 /**
  * @brief Represents a Fibonacci heap.
  */
-typedef struct FibHeap {
-    FibNode* min; /**< Pointer to the minimum node in the heap. */
+typedef struct ASM_FibHeap {
+    ASM_FibNode* min; /**< Pointer to the minimum node in the heap. */
     uint64_t size; /**< Number of nodes in the heap. */
-    FibNode** array; /**< Array for consolidating nodes during heap operations. */
-} FibHeap;
+    ASM_FibNode** array; /**< Array for consolidating nodes during heap operations. */
+} ASM_FibHeap;
 
 /**
  * @brief Create an empty Fibonacci heap.
  *
  * @return A pointer to the newly created Fibonacci heap.
  */
-extern FibHeap* ASM_fibHeapCtor(void);
+extern ASM_FibHeap* ASM_fibHeapCtor(void);
 
 /**
  * @brief Create a Fibonacci heap with an initialized element.
@@ -102,14 +102,14 @@ extern FibHeap* ASM_fibHeapCtor(void);
  * @param key The key for the initial node.
  * @return A pointer to the newly created Fibonacci heap with an initial node.
  */
-extern FibHeap* ASM_fibHeapInit(Key_t key);
+extern ASM_FibHeap* ASM_fibHeapInit(Key_t key);
 
 /**
  * @brief Destroy the Fibonacci heap and free all associated resources.
  *
  * @param heap The heap to be destroyed.
  */
-extern void ASM_fibHeapDtor(FibHeap* heap);
+extern void ASM_fibHeapDtor(ASM_FibHeap* heap);
 
 /**
  * @brief Insert a node with the given key into the Fibonacci heap.
@@ -119,7 +119,7 @@ extern void ASM_fibHeapDtor(FibHeap* heap);
  * @return A pointer to the newly inserted node.
  * @warning It is not recommended to modify the node, as it may affect the heap's validity.
  */
-extern FibNode* ASM_fibHeapIns(FibHeap* heap, Key_t key);
+extern ASM_FibNode* ASM_fibHeapIns(ASM_FibHeap* heap, Key_t key);
 
 /**
  * @brief Remove a specific node from the Fibonacci heap.
@@ -127,7 +127,7 @@ extern FibNode* ASM_fibHeapIns(FibHeap* heap, Key_t key);
  * @param heap The heap from which the node will be removed.
  * @param node The node to be removed.
  */
-extern void ASM_fibHeapDel(FibHeap* heap, FibNode* node);
+extern void ASM_fibHeapDel(ASM_FibHeap* heap, ASM_FibNode* node);
 
 /**
  * @brief Get the minimum node of the Fibonacci heap.
@@ -136,14 +136,14 @@ extern void ASM_fibHeapDel(FibHeap* heap, FibNode* node);
  * @return A pointer to the minimum node of the heap.
  * @warning It is not recommended to modify the node, as it may affect the heap's validity.
  */
-extern FibNode* ASM_fibHeapGetMin(const FibHeap* heap);
+extern ASM_FibNode* ASM_fibHeapGetMin(const ASM_FibHeap* heap);
 
 /**
  * @brief Extract the minimum node from the Fibonacci heap.
  *
  * @param heap The heap from which the minimum node will be extracted.
  */
-extern void ASM_fibHeapExtMin(FibHeap* heap);
+extern void ASM_fibHeapExtMin(ASM_FibHeap* heap);
 
 /**
  * @brief Merge two Fibonacci heaps.
@@ -152,7 +152,7 @@ extern void ASM_fibHeapExtMin(FibHeap* heap);
  * @param second The heap to be merged into the first heap.
  * @warning The second heap is merged into the first one, and the second heap is destroyed.
  */
-extern void ASM_fibHeapMerge(FibHeap* first, FibHeap* second);
+extern void ASM_fibHeapMerge(ASM_FibHeap* first, ASM_FibHeap* second);
 
 /**
  * @brief Get the size of the Fibonacci heap.
@@ -160,7 +160,7 @@ extern void ASM_fibHeapMerge(FibHeap* first, FibHeap* second);
  * @param heap The heap whose size is to be retrieved.
  * @return The number of nodes in the heap.
  */
-extern uint64_t ASM_fibHeapGetSize(const FibHeap* heap);
+extern uint64_t ASM_fibHeapGetSize(const ASM_FibHeap* heap);
 
 /**
  * @brief Change the key of a specific node in the Fibonacci heap.
@@ -171,8 +171,8 @@ extern uint64_t ASM_fibHeapGetSize(const FibHeap* heap);
  * @param node The node whose key will be changed.
  * @param new_key The new key to be assigned to the node.
  */
-extern void ASM_fibHeapOverrideKey(FibHeap* heap, FibNode* node, Key_t new_key);
+extern void ASM_fibHeapOverrideKey(ASM_FibHeap* heap, ASM_FibNode* node, Key_t new_key);
 
 /*! @} */
 
-#endif // !FIBHEAP_H
+#endif // !ASM_FIBHEAP_H
