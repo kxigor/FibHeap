@@ -79,7 +79,6 @@ typedef struct FibNode {
     /** @brief A boolean flag indicating whether the node has lost a child since it was last made a child of another node. */
     uint8_t mark;
 } FibNode;
-
 /**
  * @brief Represents a Fibonacci heap.
  */

@@ -264,10 +264,9 @@ static inline FibNode* fibNodeInit(Key_t key) {
     assert(node != NULL);
 
     /*We create a node and loop on ourselves*/
+    node->key = key;
     node->left = node;
     node->right = node;
-    node->degree = 0;
-    node->key = key;
 
     return node;
 }

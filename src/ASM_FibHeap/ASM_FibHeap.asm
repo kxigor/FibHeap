@@ -1,6 +1,12 @@
 extern calloc
 extern free
 
+extern stackCtor
+extern stackPush
+extern stackTop
+extern stackPop
+extern stackDtor
+
 global ASM_fibHeapCtor
 global ASM_fibHeapInit
 global ASM_fibHeapDtor
@@ -16,16 +22,41 @@ global ASM_fibHeapOverrideKey
 ; STRUCT: FibHeap
 ;
 ; For a detailed description of this structure, 
-; see the hd file, there will be offsets
+; see the h file, there will be offsets
 ;
 ; offset to FibNode* min
 fh_min_offset: equ 0
 ; offset to uint64_t size
 fh_size_offset: equ 8
 ; offset to FibNode** array
-fh_array_offset: equ 8
+fh_array_offset: equ 16
 ;
 ;-------------------------
+
+;-------------------------
+; STRUCT: FibNode
+;
+; For a detailed description of this structure, 
+; see the h file, there will be offsets
+;
+; offset to Key_t key
+fn_key_offset:      equ 0
+; offset to FibNode* parent
+fn_parent_offset:   equ 8
+; offset to FibNode* left
+fn_left_offset:     equ 16
+; offset to FibNode* right
+fn_right_offset:    equ 24
+; offset to FibNode child
+fn_child_offset:    equ 32
+; offset to uint64_t degree
+fn_degree_offset:   equ 40
+; offset to uint8_t
+fn_mark_offset:     equ 48
+;
+; 7 more bytes of alignment
+;-------------------------
+
 
 ;-------------------------
 ;
@@ -50,9 +81,10 @@ section .text
 ;-------------------------
 ASM_fibHeapCtor:
     push    rbx ;
-    push    rcx ; Storing
-    push    rdx ; registers
-    push    rsi ; for 
+    push    rcx ; 
+    push    rdx ; 
+    push    rsi ; Storing 
+    push    rdi ; registers 
     push    r9  ; recovery
     push    r10 ;
     push    r11 ;
@@ -91,8 +123,8 @@ ASM_fibHeapCtor_freeheap_start:
 ASM_fibHeapCtor_freeheap_end:
 
 
-    mov     [rbx + fh_min_offset],  rax  ; heap->array = calloc(...)
-    mov     rax,                    rbx  ; rax = heap i.e. for return
+    mov     [rbx + fh_array_offset],    rax  ; heap->array = calloc(...)
+    mov     rax,                        rbx  ; rax = heap i.e. for return
 
 
 ASM_fibHeapCtor_EXIT:
@@ -100,9 +132,10 @@ ASM_fibHeapCtor_EXIT:
 
     pop     r11     ;
     pop     r10     ;
-    pop     r9      ; Restoring
+    pop     r9      ; 
+    pop     rdi     ; Restoring
     pop     rsi     ; registers
-    pop     rdx     ;
+    pop     rdx     ; 
     pop     rcx     ;
     pop     rbx     ;
 
@@ -119,8 +152,122 @@ ASM_fibHeapCtor_EXIT:
 ; SPOIL: NONE
 ;
 ;-------------------------
-ASM_FibNodeInit:
+ASM_fibNodeInit:
+    push    rbx ;
+    push    rcx ; 
+    push    rdx ; 
+    push    rsi ; Storing 
+    push    rdi ; registers 
+    push    r9  ; recovery
+    push    r10 ;
+    push    r11 ;
+
+
+    mov     rbx,    rdi ; Memorizing the rdi for the key
+
+
+    mov     rdi,    1               ; rdi = 1 = number of FibNodes
+    mov     rsi,    sizeof_FibNode  ; rsi = 56 = sizeof(FibNode)
+    call calloc WRT ..plt           ; rax = calloc(rdi, rsi) = calloc(1, sizeof(FibNode))
+
+
+    test    rax,    rax     ; if(rax == NULL)
+    jz ASM_fibNodeInit_EXIT ;   reutrn NULL;
+
+
+    mov     [rax + fn_key_offset],      rbx ; node->key = key
+    mov     [rax + fn_left_offset],     rax ; node->left = node
+    mov     [rax + fn_right_offset],    rax ; node->right = node
     
+
+ASM_fibNodeInit_EXIT:
+
+
+    pop     r11     ;
+    pop     r10     ;
+    pop     r9      ; 
+    pop     rdi     ; Restoring
+    pop     rsi     ; registers
+    pop     rdx     ; 
+    pop     rcx     ;
+    pop     rbx     ;
+
+
+    ret ; return rax(node)
+
+;-------------------------
+;
+; FUNC: init fib heap
+; FibHeap* fibHeapInit(Key_t key)
+;
+; INPUT: RDI = Key_t key
+; OUTPUT: rax = fibHeap poiner
+; SPOIL: NONE
+;
+;-------------------------
+ASM_fibHeapInit:
+    call ASM_fibHeapCtor            ; rax = fibHeapCtor
+    mov rdx, rax                    ; rdx = rax
+    call ASM_fibNodeInit            ; rax = fibNodeInit(rdi), rdi = key
+    mov [rdx + fh_min_offset], rax  ; heap->min = fibNodeInit(rdi), rdi = key
+    mov qword [rdx + fh_size_offset], 1   ; heap->size = 1
+
+
+    mov rax, rdx    ; rax = rdx = heap
+    ret             ; return heap
+
+;-------------------------
+;
+; FUNC: fibHeap Destructor
+;
+; void fibHeapDtor(FibHeap* heap)
+;
+; INPUT: rdi = heap
+; OUTPUT: NONE
+; SPOIL: NONE
+;
+;-------------------------
+ASM_fibHeapDtor:
+    ; TODO: restore registers
+    push    rdi                             ; push heap
+    mov     rdi,    [rdi + fh_min_offset]   ; rdi = heap->min
+    call ASM_fibNodeDtor                    ; free(rdi) = free(heap->min)
+
+
+    pop     rdi                             ; rdi = heap
+    push    rdi                             ; push heap
+    mov     rdi,    [rdi + fh_array_offset] ; rdi = heap->array
+    call free WRT ..plt                     ; free(rdi) = free(heap->array)
+
+
+    pop     rdi                             ; rdi = heap
+    call free WRT ..plt                     ; free(rdi) = free(heap)
+
+
+    ret
+
+;-------------------------
+;
+; FUNC: fibNode destructor
+;
+; static inline void fibNodeDtor(FibNode* node)
+;
+; INPUT: rdi = node
+; OUTPUT: NONE
+; SPOIL: NONE
+;-------------------------
+ASM_fibNodeDtor:
+    ; TODO: The function is not completed
+    test    rdi,    rdi     ; if(node == NULL)
+    jz ASM_fibNodeDtor_EXIT ;   return
+
+
+    call stackCtor          ; rax = stk = stackCtor
+    test    rax,    rax     ; if(stk == NULL)
+    jz ASM_fibNodeDtor_EXIT ;   return
+
+
+ASM_fibNodeDtor_EXIT:
     ret
 
 section .data
