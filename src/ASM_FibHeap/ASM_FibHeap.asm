@@ -80,15 +80,7 @@ section .text
 ;
 ;-------------------------
 ASM_fibHeapCtor:
-    push    rbx ;
-    push    rcx ; 
-    push    rdx ; 
-    push    rsi ; Storing 
-    push    rdi ; registers 
-    push    r9  ; recovery
-    push    r10 ;
-    push    r11 ;
-
+    push    rbx ; Storing registers recovery
 
     mov     rdi,    1               ; rdi = 1 = number of fibHeaps
     mov     rsi,    sizeof_FibHeap  ; rsi = 24 = sizeof(FibHeap)
@@ -130,14 +122,7 @@ ASM_fibHeapCtor_freeheap_end:
 ASM_fibHeapCtor_EXIT:
 
 
-    pop     r11     ;
-    pop     r10     ;
-    pop     r9      ; 
-    pop     rdi     ; Restoring
-    pop     rsi     ; registers
-    pop     rdx     ; 
-    pop     rcx     ;
-    pop     rbx     ;
+    pop     rbx ; Restoring registers
 
 
     ret     ; return rax(heap)
@@ -153,17 +138,7 @@ ASM_fibHeapCtor_EXIT:
 ;
 ;-------------------------
 ASM_fibNodeInit:
-    push    rbx ;
-    push    rcx ; 
-    push    rdx ; 
-    push    rsi ; Storing 
-    push    rdi ; registers 
-    push    r9  ; recovery
-    push    r10 ;
-    push    r11 ;
-
-
-    mov     rbx,    rdi ; Memorizing the rdi for the key
+    push    rdi ; push key
 
 
     mov     rdi,    1               ; rdi = 1 = number of FibNodes
@@ -174,24 +149,13 @@ ASM_fibNodeInit:
     test    rax,    rax     ; if(rax == NULL)
     jz ASM_fibNodeInit_EXIT ;   reutrn NULL;
 
-
-    mov     [rax + fn_key_offset],      rbx ; node->key = key
+    pop     rdi                             ; rdi = key
+    mov     [rax + fn_key_offset],      rdi ; node->key = key
     mov     [rax + fn_left_offset],     rax ; node->left = node
     mov     [rax + fn_right_offset],    rax ; node->right = node
     
 
 ASM_fibNodeInit_EXIT:
-
-
-    pop     r11     ;
-    pop     r10     ;
-    pop     r9      ; 
-    pop     rdi     ; Restoring
-    pop     rsi     ; registers
-    pop     rdx     ; 
-    pop     rcx     ;
-    pop     rbx     ;
-
 
     ret ; return rax(node)
 
@@ -206,15 +170,13 @@ ASM_fibNodeInit_EXIT:
 ;
 ;-------------------------
 ASM_fibHeapInit:
-    call ASM_fibHeapCtor            ; rax = fibHeapCtor
-    mov rdx, rax                    ; rdx = rax
-    call ASM_fibNodeInit            ; rax = fibNodeInit(rdi), rdi = key
-    mov [rdx + fh_min_offset], rax  ; heap->min = fibNodeInit(rdi), rdi = key
-    mov qword [rdx + fh_size_offset], 1   ; heap->size = 1
-
-
-    mov rax, rdx    ; rax = rdx = heap
-    ret             ; return heap
+    call ASM_fibNodeInit                    ; rax = fibNodeInit(rdi), rdi = key
+    push        rax                         ; push node
+    call ASM_fibHeapCtor                    ; rax = fibHeapCtor
+    pop         rdx                         ; rdx = node
+    mov         [rax + fh_min_offset],  rdx ; heap->min = fibNodeInit(rdi), rdi = key
+    mov qword   [rax + fh_size_offset], 1   ; heap->size = 1
+    ret                                     ; return heap
 
 ;-------------------------
 ;
@@ -228,7 +190,6 @@ ASM_fibHeapInit:
 ;
 ;-------------------------
 ASM_fibHeapDtor:
-    ; TODO: restore registers
     push    rdi                             ; push heap
     mov     rdi,    [rdi + fh_min_offset]   ; rdi = heap->min
     call ASM_fibNodeDtor                    ; free(rdi) = free(heap->min)
@@ -255,6 +216,7 @@ ASM_fibHeapDtor:
 ; INPUT: rdi = node
 ; OUTPUT: NONE
 ; SPOIL: NONE
+;
 ;-------------------------
 ASM_fibNodeDtor:
     ; TODO: The function is not completed
