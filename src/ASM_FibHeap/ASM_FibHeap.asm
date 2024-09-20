@@ -129,6 +129,7 @@ ASM_fibHeapCtor:
 
     ret     ; return rax(heap)
 
+
 ;-------------------------
 ;
 ; FUNC: init fib node
@@ -141,21 +142,21 @@ ASM_fibHeapCtor:
 ;
 ;-------------------------
 ASM_fibNodeInit:
-    push    rdi ; push key
+    push rdi ; push key
 
 
-    mov     rdi,    1               ; rdi = 1 = number of FibNodes
-    mov     rsi,    sizeof_FibNode  ; rsi = 56 = sizeof(FibNode)
-    call calloc WRT ..plt           ; rax = calloc(rdi, rsi) = calloc(1, sizeof(FibNode))
+    mov rdi, 1               ; rdi = 1 = number of FibNodes
+    mov rsi, sizeof_FibNode  ; rsi = 56 = sizeof(FibNode)
+    call calloc WRT ..plt    ; rax = calloc(rdi, rsi) = calloc(1, sizeof(FibNode))
 
 
-    test    rax,    rax     ; if(rax == NULL)
+    test rax, rax           ; if(rax == NULL)
     jz ASM_fibNodeInit_exit ;   reutrn NULL;
 
-    pop     rdi                             ; rdi = key
-    mov     [rax + fn_key_offset],      rdi ; node->key = key
-    mov     [rax + fn_left_offset],     rax ; node->left = node
-    mov     [rax + fn_right_offset],    rax ; node->right = node
+    pop rdi                             ; rdi = key
+    mov [rax + fn_key_offset], rdi      ; node->key = key
+    mov [rax + fn_left_offset], rax     ; node->left = node
+    mov [rax + fn_right_offset], rax    ; node->right = node
     
 
     ASM_fibNodeInit_exit:
@@ -174,13 +175,13 @@ ASM_fibNodeInit:
 ;
 ;-------------------------
 ASM_fibHeapInit:
-    call ASM_fibNodeInit                    ; rax = fibNodeInit(rdi), rdi = key
-    push        rax                         ; push node
-    call ASM_fibHeapCtor                    ; rax = fibHeapCtor
-    pop         rdx                         ; rdx = node
-    mov         [rax + fh_min_offset],  rdx ; heap->min = fibNodeInit(rdi), rdi = key
-    mov qword   [rax + fh_size_offset], 1   ; heap->size = 1
-    ret                                     ; return heap
+    call ASM_fibNodeInit                ; rax = fibNodeInit(rdi), rdi = key
+    push rax                            ; push node
+    call ASM_fibHeapCtor                ; rax = fibHeapCtor
+    pop rdx                             ; rdx = node
+    mov [rax + fh_min_offset], rdx      ; heap->min = fibNodeInit(rdi), rdi = key
+    mov qword [rax + fh_size_offset], 1 ; heap->size = 1
+    ret                                 ; return heap
 
 ;-------------------------
 ;
@@ -195,19 +196,19 @@ ASM_fibHeapInit:
 ;
 ;-------------------------
 ASM_fibHeapDtor:
-    push    rdi                             ; push heap
-    mov     rdi,    [rdi + fh_min_offset]   ; rdi = heap->min
-    call ASM_fibNodeDtor                    ; free(rdi) = free(heap->min)
+    push rdi                        ; push heap
+    mov rdi, [rdi + fh_min_offset]  ; rdi = heap->min
+    call ASM_fibNodeDtor            ; free(rdi) = free(heap->min)
 
 
-    pop     rdi                             ; rdi = heap
-    push    rdi                             ; push heap
-    mov     rdi,    [rdi + fh_array_offset] ; rdi = heap->array
-    call free WRT ..plt                     ; free(rdi) = free(heap->array)
+    pop rdi                             ; rdi = heap
+    push rdi                            ; push heap
+    mov rdi, [rdi + fh_array_offset]    ; rdi = heap->array
+    call free WRT ..plt                 ; free(rdi) = free(heap->array)
 
 
-    pop     rdi                             ; rdi = heap
-    call free WRT ..plt                     ; free(rdi) = free(heap)
+    pop rdi             ; rdi = heap
+    call free WRT ..plt ; free(rdi) = free(heap)
 
 
     ret
@@ -224,18 +225,17 @@ ASM_fibHeapDtor:
 ;
 ;-------------------------
 ASM_fibHeapIns:
-    ; TODO: add a function
-    push    rbx ; saving register for recovery
+    push rbx ; saving register for recovery
 
 
-    test    rdi,    rdi     ; if(haep == NULL)
+    test rdi, rdi     ; if(haep == NULL)
     jz ASM_fibHeapIns_exit  ;   return
 
 
-    mov     rbx,    rdi ; rbx = heap
+    mov rbx, rdi ; rbx = heap
 
 
-    mov     rdi,    rsi     ; rdi = key
+    mov rdi, rsi            ; rdi = key
     call ASM_fibNodeInit    ; rax = new_node
 
 
@@ -264,10 +264,100 @@ ASM_fibHeapIns:
 
 
     ASM_fibHeapIns_exit:
-    pop     rbx ; restore spoiled register
+    pop rbx ; restore spoiled register
     ret
 ;-------------------------
 
+
+;-------------------------
+;
+; FUNC: fibHeap get min
+; FibNode* fibHeapGetMin(const FibHeap* heap)
+;
+; INPUT: rdi = heap
+; OUTPUT: rax = min_node
+; SPOIL: according to the agreement
+; caller saved registers
+;
+;-------------------------
+ASM_fibHeapGetMin:
+    test rdi, rdi                           ; if(heap == NULL)
+    jz ASM_fibHeapGetMin_exit               ;   return NULL
+    mov rax, [rdi + fh_min_offset]          ; else
+    ASM_fibHeapGetMin_exit                  ;   return heap->min
+    ret                                     ;
+
+
+;-------------------------
+;
+; FUNC: fibHeap extract min
+; void fibHeapExtMin(FibHeap* heap)
+;
+; INPUT: rdi = heap
+; OUTPUT: NONE
+; SPOIL: according to the agreement
+; caller saved registers
+;
+;-------------------------
+ASM_fibHeapExtMin:
+    push rbx ; saving register for recovery
+
+
+    test rdi, rdi               ; if(heap == NULL)
+    jz ASM_fibHeapExtMin_exit   ;   return
+
+
+    mov rbx, rdi ; rbx = heap
+
+
+    cmp qword [rbx + fh_size_offset], 0 ; if(heap->size == 0)
+    je ASM_fibHeapExtMin_exit           ;   return
+
+
+    cmp qword [rbx + fh_size_offset], 1         ; if(heap->size == 1) {
+    jne ASM_fibHeapExtMin_1_if                  ;
+        mov rdi, [rbx + fh_min_offset]          ; rdi = heap->min
+        call free WRT ..plt                     ; free(rdi) = free(heap->min)
+        mov qword [rbx + fh_min_offset], 0      ; heap->min = 0
+        mov qword [rbx + fh_size_offset], 0     ; heap->size = 0
+        jmp ASM_fibHeapExtMin_exit              ; return
+    ASM_fibHeapExtMin_1_if:                     ; }
+
+
+    push qword [rbx + fh_min_offset] ; push heap->min i.e. node for delete
+
+
+    mov rdi, [rbx + fh_min_offset]              ; rdi = heap->min
+    cmp qword [rdi + fn_child_offset], 0        ; if(rdi->child != NULL) { //heap->min->child
+    je ASM_fibHeapExtMin_2_if                   ;
+        mov rsi, [rdi + fn_child_offset]        ; rsi = rdi->child = heap->min->child
+        call ASM_fibNodeUnionLists              ;
+    ASM_fibHeapExtMin_2_if:                     ; }
+
+
+    mov rdi, [rbx + fh_min_offset]  ; rdi = heap->min
+    call ASM_fibNodeUntie           ; fibNodeUntie(heap->min)
+
+
+    mov rax, [rbx + fh_min_offset]   ; rax = heap->min
+    mov rax, [rax + fn_right_offset] ; rax = heap->min->right
+    mov [rbx + fh_min_offset], rax   ; heap->min = heap->min->right
+
+
+    pop rdi             ; pop node for delete
+    call free WRT ..plt ; free(delete_node)
+
+
+    dec qword [rbx + fh_size_offset] ; heap->size--;
+
+
+    mov rdi, rbx                ; rdi = heap
+    call ASM_fibHeapConsolidate ; fibHeapConsolidate(heap)
+
+
+    ASM_fibHeapExtMin_exit:
+    pop rbx ; restore spoiled register
+    ret     ; return
 
 ;-------------------------
 ;
