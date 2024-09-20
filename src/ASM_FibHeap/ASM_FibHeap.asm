@@ -398,8 +398,8 @@ ASM_fibNodeUnionLists:
 
     mov     [rdx + fn_right_offset],    rcx ; first->left->right = second->right
     mov     [rcx + fn_left_offset],     rdx ; second->right->left = first->left
-    mov     [rdx],                      rsi ; first->left = second
-    mov     [rcx],                      rdi ; second->right = first
+    mov     [rdi + fn_left_offset],     rsi ; first->left = second
+    mov     [rsi + fn_right_offset],    rdi ; second->right = first
 
 
     ASM_fibNodeUnionLists_exit:
