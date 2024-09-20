@@ -11,5 +11,9 @@ int32_t main(void) {
     printf("sizeof(FibHeap) = %lu\n", sizeof(FibHeap));
     printf("sizeof(FibNode) = %lu\n", sizeof(FibNode));
     ASM_FibHeap* asm_heap = ASM_fibHeapInit(1000);
+    generateFibHeapDot(asm_heap);
+    ASM_fibHeapIns(asm_heap, 10);
+    ASM_fibHeapIns(asm_heap, 100);
+    generateFibHeapDot(asm_heap);
     ASM_fibHeapDtor(asm_heap);
 }

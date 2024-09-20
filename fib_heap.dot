@@ -3,16 +3,10 @@ labelloc="t"
 label="ASM Fibonacci heap by KXI"
 rankdir=TB;
 node [shape=box];
-{ rank=same; n0x6060000029c0 [label="key=880991235
-addr=0x6060000029c0"];
-n0x6060000029c0 [color=red];
-n0x6060000029c0 -> n0x6060000029c0 [color=blue];
-n0x6060000029c0 -> n0x6060000029c0 [color=green];
-}
-n0x6060000029c0 -> n0x606000002960 [color=black];
-{ rank=same; n0x606000002960 [label="key=1117782711
-addr=0x606000002960"];
-n0x606000002960 -> n0x606000002960 [color=blue];
-n0x606000002960 -> n0x606000002960 [color=green];
+{ rank=same; n0x606000000020 [label="key=1000
+addr=0x606000000020"];
+n0x606000000020 [color=red];
+n0x606000000020 -> n0x606000000020 [color=blue];
+n0x606000000020 -> n0x606000000020 [color=green];
 }
 }

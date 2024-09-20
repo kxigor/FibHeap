@@ -90,7 +90,7 @@ ASM_fibHeapCtor:
 
 
     test    rax,    rax         ; if(rax == NULL)
-    jz ASM_fibHeapCtor_EXIT     ;   return NULL
+    jz ASM_fibHeapCtor_exit     ;   return NULL
 
 
     mov     rbx,    rax    ; rbx = rax = heap i.e. heap pointer
@@ -100,28 +100,28 @@ ASM_fibHeapCtor:
     mov     rsi,    8                   ; rsi = sizeof(FibNode*) = 8 i.e. pointer
     call calloc WRT ..plt               ; rax = calloc(rdi, rsi) = calloc(50000, sizeof(FibNode*))
     test    rax,    rax                 ; if(rax == NULL)
-    jz ASM_fibHeapCtor_freeheap_start   ; {free(heap); return NULL}
+    jz ASM_fibHeapCtor_1_if_start   ; {free(heap); return NULL}
 
 
-    jmp ASM_fibHeapCtor_freeheap_end    ; No need to free up memory
+    jmp ASM_fibHeapCtor_1_if_end    ; No need to free up memory
 
 
     ; Accordingly, we allocated memory 
     ; for the first pointer, but we couldn't 
     ; for the second one, so we need to free 
     ; up for the first one
-ASM_fibHeapCtor_freeheap_start:
+    ASM_fibHeapCtor_1_if_start:
     mov     rdi,    rbx         ; rdi = rax = heap i.e. heap pointer
     call free WRT ..plt         ; free(heap)
-    jmp ASM_fibHeapCtor_EXIT    ; Exiting the function
-ASM_fibHeapCtor_freeheap_end:
+    jmp ASM_fibHeapCtor_exit    ; Exiting the function
+    ASM_fibHeapCtor_1_if_end:
 
 
     mov     [rbx + fh_array_offset],    rax  ; heap->array = calloc(...)
     mov     rax,                        rbx  ; rax = heap i.e. for return
 
 
-ASM_fibHeapCtor_EXIT:
+    ASM_fibHeapCtor_exit:
 
 
     pop     rbx ; Restoring registers
@@ -150,7 +150,7 @@ ASM_fibNodeInit:
 
 
     test    rax,    rax     ; if(rax == NULL)
-    jz ASM_fibNodeInit_EXIT ;   reutrn NULL;
+    jz ASM_fibNodeInit_exit ;   reutrn NULL;
 
     pop     rdi                             ; rdi = key
     mov     [rax + fn_key_offset],      rdi ; node->key = key
@@ -158,7 +158,7 @@ ASM_fibNodeInit:
     mov     [rax + fn_right_offset],    rax ; node->right = node
     
 
-ASM_fibNodeInit_EXIT:
+    ASM_fibNodeInit_exit:
 
     ret ; return rax(node)
 
@@ -229,7 +229,7 @@ ASM_fibHeapIns:
 
 
     test    rdi,    rdi     ; if(haep == NULL)
-    jz ASM_fibHeapIns_EXIT  ;   return
+    jz ASM_fibHeapIns_exit  ;   return
 
 
     mov     rbx,    rdi ; rbx = heap
@@ -239,18 +239,31 @@ ASM_fibHeapIns:
     call ASM_fibNodeInit    ; rax = new_node
 
 
-    cmp qword [rbx + fh_size_offset], 0
-    jne ASM_fibHeapIns_1_if
-        mov [rbx + fh_min_offset], rax
-        jmp ASM_fibHeapIns_1_if_end
-    ASM_fibHeapIns_1_if:
-        mov rsi, [rbx + fh_min_offset]
-        mov rdi, rax
+    cmp qword [rbx + fh_size_offset], 0 ; if(heap->size == 0) {
+    jne ASM_fibHeapIns_1_if             ;
+        mov [rbx + fh_min_offset], rax  ; heap->min = rax = new_node
+        jmp ASM_fibHeapIns_1_if_end     ;
+    ASM_fibHeapIns_1_if:                ; } else {
+        ; push rax PS rax not spoil
+        mov rsi, [rbx + fh_min_offset]  ; rsi = heap->min
+        mov rdi, rax                    ; rdi = new_node
+        call ASM_fibNodeUnionLists      ; fibNodeUnionLists(heap->min, new_node)
+        ; pop rax PS rax not spoil
 
-    ASM_fibHeapIns_1_if_end:
+
+        mov rdx, [rbx + fh_min_offset]      ; rdx = rbx + fh_min_offset = heap->min
+        mov rdx, [rdx + fn_key_offset]      ; rdx = rdx + fn_key_offset = heap->min->key
+        cmp rdx, [rax + fn_key_offset]      ; if(heap->min->key > new_node->key)
+        jle ASM_fibHeap_2_if                ;
+            mov [rbx + fh_min_offset], rax  ; heap->min = new_node;
+        ASM_fibHeap_2_if:                   ;
+    ASM_fibHeapIns_1_if_end:            ; }
 
 
-ASM_fibHeapIns_EXIT:
+    inc qword [rbx + fh_size_offset]
+
+
+    ASM_fibHeapIns_exit:
     pop     rbx ; restore spoiled register
     ret
 ;-------------------------
@@ -275,7 +288,7 @@ ASM_fibNodeDtor:
 
 
     test    rdi,    rdi     ; if(node == NULL)
-    jz ASM_fibNodeDtor_EXIT ;   return
+    jz ASM_fibNodeDtor_exit ;   return
 
 
     mov     rbx,    rdi     ; rbx = node
@@ -283,7 +296,7 @@ ASM_fibNodeDtor:
 
     call stackCtor          ; rax = stk = stackCtor
     test    rax,    rax     ; if(stk == NULL)
-    jz ASM_fibNodeDtor_EXIT ;   return
+    jz ASM_fibNodeDtor_exit ;   return
 
 
     mov     rbp,    rax     ; rbp = stk
@@ -292,7 +305,7 @@ ASM_fibNodeDtor:
     mov     r12,    rbx     ; r12 = node = first_node
 
 
-    ASM_fibNodeDtor_LOOP_START:   ; for(;;) {
+    ASM_fibNodeDtor_loop_start:   ; for(;;) {
         
 
         cmp qword [rbx + fn_child_offset], 0        ; if(node->child != NULL) {
@@ -328,7 +341,7 @@ ASM_fibNodeDtor:
             mov     rdi,    rbp         ; rdi = stk
             call stackSize              ; rax = stackSize(stk)
             cmp     rax,    0           ; if(stackSize(stk) == 0)
-            je ASM_fibNodeDtor_LOOP_END ;   break
+            je ASM_fibNodeDtor_loop_end ;   break
 
 
             mov     rdi,    rbp ; rdi = stk
@@ -344,18 +357,52 @@ ASM_fibNodeDtor:
 
 
         ASM_fibNodeDtor_2_if:
-    jmp ASM_fibNodeDtor_LOOP_START ; }
-    ASM_fibNodeDtor_LOOP_END:
+    jmp ASM_fibNodeDtor_loop_start ; }
+    ASM_fibNodeDtor_loop_end:
 
 
     mov     rdi,    rbp ; rdi = stk
     call stackDtor      ; stackDtor(stk)
 
 
-ASM_fibNodeDtor_EXIT:
+    ASM_fibNodeDtor_exit:
     pop     r12 ; restore spoiled register
     pop     rbp ; 
     pop     rbx ; 
+    ret
+
+;-------------------------
+;
+; FUNC: Merge nodes lists
+; static inline void fibNodeUnionLists(FibNode* first, FibNode* second)
+;
+; INPUT: rdi = first, rsi = second
+; OUTPUT: NONE
+; SPOIL: according to the agreement
+; caller saved registers
+; NO SPOIL: rax
+;
+;-------------------------
+ASM_fibNodeUnionLists:
+
+
+    test    rdi,    rdi             ; if(first == NULL)
+    jz ASM_fibNodeUnionLists_exit   ;   return
+    test    rsi,    rsi             ; if(second == NULL)
+    jz ASM_fibNodeUnionLists_exit   ;   return 
+
+
+    mov     rdx,    [rdi + fn_left_offset]  ; rdx = first->left
+    mov     rcx,    [rsi + fn_right_offset] ; rcx = second->right
+
+
+    mov     [rdx + fn_right_offset],    rcx ; first->left->right = second->right
+    mov     [rcx + fn_left_offset],     rdx ; second->right->left = first->left
+    mov     [rdx],                      rsi ; first->left = second
+    mov     [rcx],                      rdi ; second->right = first
+
+
+    ASM_fibNodeUnionLists_exit:
     ret
 
 section .data
