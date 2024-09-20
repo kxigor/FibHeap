@@ -2,10 +2,11 @@ extern calloc
 extern free
 
 extern stackCtor
-extern stackPush
-extern stackTop
-extern stackPop
 extern stackDtor
+extern stackPush
+extern stackPop
+extern stackTop
+extern stackSize
 
 global ASM_fibHeapCtor
 global ASM_fibHeapInit
@@ -76,7 +77,8 @@ section .text
 ;
 ; INPUT : NONE (void)
 ; OUTPUT: rax = fibHeap pointer
-; SPOIL: NONE
+; SPOIL: according to the agreement
+; caller saved registers
 ;
 ;-------------------------
 ASM_fibHeapCtor:
@@ -134,7 +136,8 @@ ASM_fibHeapCtor_EXIT:
 ;
 ; INPUT: RDI = Key_t key
 ; OUTPUT: rax = fibNode poiner
-; SPOIL: NONE
+; SPOIL: according to the agreement
+; caller saved registers
 ;
 ;-------------------------
 ASM_fibNodeInit:
@@ -166,7 +169,8 @@ ASM_fibNodeInit_EXIT:
 ;
 ; INPUT: RDI = Key_t key
 ; OUTPUT: rax = fibHeap poiner
-; SPOIL: NONE
+; SPOIL: according to the agreement
+; caller saved registers
 ;
 ;-------------------------
 ASM_fibHeapInit:
@@ -186,7 +190,8 @@ ASM_fibHeapInit:
 ;
 ; INPUT: rdi = heap
 ; OUTPUT: NONE
-; SPOIL: NONE
+; SPOIL: according to the agreement
+; caller saved registers
 ;
 ;-------------------------
 ASM_fibHeapDtor:
@@ -209,19 +214,71 @@ ASM_fibHeapDtor:
 
 ;-------------------------
 ;
+; FUNC: fibHeap insert
+; FibNode* fibHeapIns(FibHeap* heap, Key_t key) 
+;
+; INPUT: rdi = heap, rsi = key
+; OUTPUT: rax = new_node pointer
+; SPOIL: according to the agreement
+; caller saved registers
+;
+;-------------------------
+ASM_fibHeapIns:
+    ; TODO: add a function
+    push    rbx ; saving register for recovery
+
+
+    test    rdi,    rdi     ; if(haep == NULL)
+    jz ASM_fibHeapIns_EXIT  ;   return
+
+
+    mov     rbx,    rdi ; rbx = heap
+
+
+    mov     rdi,    rsi     ; rdi = key
+    call ASM_fibNodeInit    ; rax = new_node
+
+
+    cmp qword [rbx + fh_size_offset], 0
+    jne ASM_fibHeapIns_1_if
+        mov [rbx + fh_min_offset], rax
+        jmp ASM_fibHeapIns_1_if_end
+    ASM_fibHeapIns_1_if:
+        mov rsi, [rbx + fh_min_offset]
+        mov rdi, rax
+
+    ASM_fibHeapIns_1_if_end:
+
+
+ASM_fibHeapIns_EXIT:
+    pop     rbx ; restore spoiled register
+    ret
+;-------------------------
+
+
+;-------------------------
+;
 ; FUNC: fibNode destructor
 ;
 ; static inline void fibNodeDtor(FibNode* node)
 ;
 ; INPUT: rdi = node
 ; OUTPUT: NONE
-; SPOIL: NONE
+; SPOIL: according to the agreement
+; caller saved registers
 ;
 ;-------------------------
 ASM_fibNodeDtor:
-    ; TODO: The function is not completed
+    push    rbx ; saving register for recovery
+    push    rbp ;
+    push    r12 ;
+
+
     test    rdi,    rdi     ; if(node == NULL)
     jz ASM_fibNodeDtor_EXIT ;   return
+
+
+    mov     rbx,    rdi     ; rbx = node
 
 
     call stackCtor          ; rax = stk = stackCtor
@@ -229,7 +286,76 @@ ASM_fibNodeDtor:
     jz ASM_fibNodeDtor_EXIT ;   return
 
 
+    mov     rbp,    rax     ; rbp = stk
+
+
+    mov     r12,    rbx     ; r12 = node = first_node
+
+
+    ASM_fibNodeDtor_LOOP_START:   ; for(;;) {
+        
+
+        cmp qword [rbx + fn_child_offset], 0        ; if(node->child != NULL) {
+        je ASM_fibNodeDtor_1_if                     ;
+            mov     rdi,    rbp                     ; rdi = stk
+            mov     rsi,    [rbx + fn_child_offset] ; rsi = node->child
+            call stackPush                          ; stackPush(stk, node->child)
+        ASM_fibNodeDtor_1_if:                       ; }
+
+
+        mov     rdi,    rbp                     ; rdi = stk
+        mov     rsi,    [rbx + fn_right_offset] ; rsi = node->right
+        call stackPush                          ; stackPush(stk, node->right)
+
+
+        mov     rdi,    rbx ; rdi = node
+        call free WRT ..plt ; free(node)
+
+
+        mov     rdi,    rbp ; rdi = stk
+        call stackTop       ; rax = stackTop(stk)
+        mov     rbx,    rax ; rbx = rax = node
+
+
+        mov     rdi,    rbp ; rdi = stk
+        call stackPop       ; stackPop(stk)
+
+
+        cmp     rbx,    r12         ; if(node == first_node) {
+        jne ASM_fibNodeDtor_2_if    ;
+
+
+            mov     rdi,    rbp         ; rdi = stk
+            call stackSize              ; rax = stackSize(stk)
+            cmp     rax,    0           ; if(stackSize(stk) == 0)
+            je ASM_fibNodeDtor_LOOP_END ;   break
+
+
+            mov     rdi,    rbp ; rdi = stk
+            call stackTop       ; rax = stackTop(stk)
+            mov     rbx,    rax ; rbx = rax = node
+
+
+            mov     rdi,    rbp ; rdi = stk
+            call stackPop       ; stackPop(stk)
+
+
+            mov     r12,    rbx ; first_node = node
+
+
+        ASM_fibNodeDtor_2_if:
+    jmp ASM_fibNodeDtor_LOOP_START ; }
+    ASM_fibNodeDtor_LOOP_END:
+
+
+    mov     rdi,    rbp ; rdi = stk
+    call stackDtor      ; stackDtor(stk)
+
+
 ASM_fibNodeDtor_EXIT:
+    pop     r12 ; restore spoiled register
+    pop     rbp ; 
+    pop     rbx ; 
     ret
 
 section .data
