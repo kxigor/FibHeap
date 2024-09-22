@@ -48,7 +48,7 @@
  * @brief Maximum size of the heap merge array.
  * @warning The program does not provide overflow checks for this array!
  */
-#define FIB_ARRAY_START_SIZE (50000)
+#define FIB_ARRAY_START_SIZE (500)
 
 /**
  * @brief Typedef for key type in Fibonacci heap.

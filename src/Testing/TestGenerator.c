@@ -27,7 +27,8 @@ void test_generator(int32_t num_of_tests) {
     for(int32_t i = 0; i < num_of_tests; i++)
     {
         if(heap_size > 0)
-            command = gen(FIB_INSERT, FIB_DEL_LAST);
+            //command = gen(FIB_INSERT, FIB_DEL_LAST);
+            command = gen(FIB_INSERT, FIB_EXT_MIN);
         else
             command = FIB_INSERT;
 

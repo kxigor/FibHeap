@@ -433,6 +433,9 @@ static inline void fibHeapConsolidate(FibHeap* heap) {
         heap->array[currnet_node->degree] = NULL;
         currnet_node = currnet_node->right;
     } while(currnet_node != heap->min);
+
+    for(uint64_t i = 0; i < FIB_ARRAY_START_SIZE; i++)
+        assert(heap->array[i] == NULL);
 }
 
 static inline void fibNodeLink(FibNode* first, FibNode* second) {

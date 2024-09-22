@@ -1,6 +1,7 @@
 #ifndef FIB_GENERATOR_H
 #define FIB_GENERATOR_H
 
+#include "../ASM_FibHeap/ASM_FibHeap.h"
 #include "../FibHeap/FibHeap.h"
 #include "../Graph/Graph.h"
 #include "../Stack/Stack.h"
@@ -16,6 +17,8 @@
  * - Extracting the minimum element from the heap (FIB_EXT_MIN)
  * - Deleting the last inserted element (FIB_DEL_LAST)
  */
+
 void testing();
+void ASM_testing();
 
 #endif // !FIB_GENERATOR_H

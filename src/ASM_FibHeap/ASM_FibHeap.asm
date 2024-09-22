@@ -284,7 +284,7 @@ ASM_fibHeapGetMin:
     test rdi, rdi                           ; if(heap == NULL)
     jz ASM_fibHeapGetMin_exit               ;   return NULL
     mov rax, [rdi + fh_min_offset]          ; else
-    ASM_fibHeapGetMin_exit                  ;   return heap->min
+    ASM_fibHeapGetMin_exit:                 ;   return heap->min
     ret                                     ;
 
 
@@ -372,78 +372,78 @@ ASM_fibHeapExtMin:
 ;
 ;-------------------------
 ASM_fibNodeDtor:
-    push    rbx ; saving register for recovery
-    push    rbp ;
-    push    r12 ;
+    push rbx ; saving register for recovery
+    push rbp ;
+    push r12 ;
 
 
-    test    rdi,    rdi     ; if(node == NULL)
+    test rdi, rdi           ; if(node == NULL)
     jz ASM_fibNodeDtor_exit ;   return
 
 
-    mov     rbx,    rdi     ; rbx = node
+    mov rbx, rdi ; rbx = node
 
 
     call stackCtor          ; rax = stk = stackCtor
-    test    rax,    rax     ; if(stk == NULL)
+    test rax, rax           ; if(stk == NULL)
     jz ASM_fibNodeDtor_exit ;   return
 
 
-    mov     rbp,    rax     ; rbp = stk
+    mov rbp, rax ; rbp = stk
 
 
-    mov     r12,    rbx     ; r12 = node = first_node
+    mov r12, rbx ; r12 = node = first_node
 
 
     ASM_fibNodeDtor_loop_start:   ; for(;;) {
         
 
-        cmp qword [rbx + fn_child_offset], 0        ; if(node->child != NULL) {
-        je ASM_fibNodeDtor_1_if                     ;
-            mov     rdi,    rbp                     ; rdi = stk
-            mov     rsi,    [rbx + fn_child_offset] ; rsi = node->child
-            call stackPush                          ; stackPush(stk, node->child)
-        ASM_fibNodeDtor_1_if:                       ; }
+        cmp qword [rbx + fn_child_offset], 0    ; if(node->child != NULL) {
+        je ASM_fibNodeDtor_1_if                 ;
+            mov rdi, rbp                        ; rdi = stk
+            mov rsi, [rbx + fn_child_offset]    ; rsi = node->child
+            call stackPush                      ; stackPush(stk, node->child)
+        ASM_fibNodeDtor_1_if:                   ; }
 
 
-        mov     rdi,    rbp                     ; rdi = stk
-        mov     rsi,    [rbx + fn_right_offset] ; rsi = node->right
-        call stackPush                          ; stackPush(stk, node->right)
+        mov rdi, rbp                     ; rdi = stk
+        mov rsi, [rbx + fn_right_offset] ; rsi = node->right
+        call stackPush                   ; stackPush(stk, node->right)
 
 
-        mov     rdi,    rbx ; rdi = node
+        mov rdi, rbx        ; rdi = node
         call free WRT ..plt ; free(node)
 
 
-        mov     rdi,    rbp ; rdi = stk
-        call stackTop       ; rax = stackTop(stk)
-        mov     rbx,    rax ; rbx = rax = node
+        mov rdi, rbp    ; rdi = stk
+        call stackTop   ; rax = stackTop(stk)
+        mov rbx, rax    ; rbx = rax = node
 
 
-        mov     rdi,    rbp ; rdi = stk
-        call stackPop       ; stackPop(stk)
+        mov rdi, rbp    ; rdi = stk
+        call stackPop   ; stackPop(stk)
 
 
-        cmp     rbx,    r12         ; if(node == first_node) {
+        cmp rbx, r12                ; if(node == first_node) {
         jne ASM_fibNodeDtor_2_if    ;
 
 
-            mov     rdi,    rbp         ; rdi = stk
+            mov rdi, rbp                ; rdi = stk
             call stackSize              ; rax = stackSize(stk)
-            cmp     rax,    0           ; if(stackSize(stk) == 0)
+            cmp rax, 0                  ; if(stackSize(stk) == 0)
             je ASM_fibNodeDtor_loop_end ;   break
 
 
-            mov     rdi,    rbp ; rdi = stk
-            call stackTop       ; rax = stackTop(stk)
-            mov     rbx,    rax ; rbx = rax = node
+            mov rdi, rbp    ; rdi = stk
+            call stackTop   ; rax = stackTop(stk)
+            mov rbx, rax    ; rbx = rax = node
 
 
-            mov     rdi,    rbp ; rdi = stk
-            call stackPop       ; stackPop(stk)
+            mov rdi, rbp    ; rdi = stk
+            call stackPop   ; stackPop(stk)
 
 
-            mov     r12,    rbx ; first_node = node
+            mov r12, rbx ; first_node = node
 
 
         ASM_fibNodeDtor_2_if:
@@ -451,14 +451,14 @@ ASM_fibNodeDtor:
     ASM_fibNodeDtor_loop_end:
 
 
-    mov     rdi,    rbp ; rdi = stk
-    call stackDtor      ; stackDtor(stk)
+    mov rdi, rbp    ; rdi = stk
+    call stackDtor  ; stackDtor(stk)
 
 
     ASM_fibNodeDtor_exit:
-    pop     r12 ; restore spoiled register
-    pop     rbp ; 
-    pop     rbx ; 
+    pop r12 ; restore spoiled register
+    pop rbp ; 
+    pop rbx ; 
     ret
 
 ;-------------------------
@@ -468,31 +468,210 @@ ASM_fibNodeDtor:
 ;
 ; INPUT: rdi = first, rsi = second
 ; OUTPUT: NONE
-; SPOIL: according to the agreement
-; caller saved registers
-; NO SPOIL: rax
+; SPOIL: rdx, rcx
 ;
 ;-------------------------
 ASM_fibNodeUnionLists:
 
 
-    test    rdi,    rdi             ; if(first == NULL)
+    test rdi, rdi                   ; if(first == NULL)
     jz ASM_fibNodeUnionLists_exit   ;   return
-    test    rsi,    rsi             ; if(second == NULL)
+    test rsi, rsi                   ; if(second == NULL)
     jz ASM_fibNodeUnionLists_exit   ;   return 
 
 
-    mov     rdx,    [rdi + fn_left_offset]  ; rdx = first->left
-    mov     rcx,    [rsi + fn_right_offset] ; rcx = second->right
+    mov rdx, [rdi + fn_left_offset]  ; rdx = first->left
+    mov rcx, [rsi + fn_right_offset] ; rcx = second->right
 
 
-    mov     [rdx + fn_right_offset],    rcx ; first->left->right = second->right
-    mov     [rcx + fn_left_offset],     rdx ; second->right->left = first->left
-    mov     [rdi + fn_left_offset],     rsi ; first->left = second
-    mov     [rsi + fn_right_offset],    rdi ; second->right = first
+    mov [rdx + fn_right_offset], rcx ; first->left->right = second->right
+    mov [rcx + fn_left_offset], rdx ; second->right->left = first->left
+    mov [rdi + fn_left_offset], rsi ; first->left = second
+    mov [rsi + fn_right_offset], rdi ; second->right = first
 
 
     ASM_fibNodeUnionLists_exit:
     ret
+
+
+;-------------------------
+;
+; FUNC: fibNodeUntie
+; static inline void fibNodeUntie(FibNode* node)
+;
+; INPUT: rdi = node
+; OUTPUT: NONE
+; SPOIL: rdx, rcx
+;
+;-------------------------
+ASM_fibNodeUntie:
+    mov rdx, [rdi + fn_left_offset]     ; rdx = node->left
+    mov rcx, [rdi + fn_right_offset]    ; rcx = node->right
+    mov [rdx + fn_right_offset], rcx    ; node->left->right = node->right
+    mov [rcx + fn_left_offset], rdx     ; node->right->left = node->left
+    ret
+
+;-------------------------
+;
+; FUNC: fibHeapConsolidate
+; static inline void fibHeapConsolidate(FibHeap* heap)
+; 
+; INPUT: rdi = heap
+; OUTPUT: NONE
+; SPOIL: according to the agreement
+; caller saved registers
+;
+;-------------------------
+ASM_fibHeapConsolidate:
+    ; TODO: restore registers
+    push rbx
+    push rbp
+    push r12
+    push r13
+
+
+    test rdi, rdi                   ; if(rdi == NULL)
+    jz ASM_fibHeapConsolidate_exit  ;   return
+
+
+    mov r12, rdi                        ; r12 = heap
+    xor r13, r13                        ; r13 = next_node
+    mov rbx, [rdi + fh_min_offset]      ; rbx = current_node = heap->min
+    mov rbp, [rdi + fh_array_offset]    ; rbp = heap->array
+
+
+    ASM_fibHeapConsolidate_1_loop_start:
+    mov rax, [rbx + fn_degree_offset] ; rax = current_node->degree
+    shl rax, 3                        ; rax *= 8(sizeof void*) i.e. pointer offset
+    cmp rbx, [rbp + rax]              ; if(current_node != heap->arr[current_node->degree]) {
+    je ASM_fibHeapConsolidate_1_loop_end;
+
+
+        mov qword [rbx + fn_parent_offset], 0
+
+
+        mov rcx, [r12 + fh_min_offset]      ; rcx = heap->min
+        mov rcx, [rcx + fn_key_offset]      ; rcx = heap->min->key
+        cmp rcx, [rbx + fn_key_offset]      ; if (heap->min->key > current_node->key)
+        jle ASM_fibHeapConsolidate_1_if     ;
+            mov [r12 + fh_min_offset], rbx  ; heap->min = current_node
+        ASM_fibHeapConsolidate_1_if:        ;
+
+
+        mov r13, [rbx + fn_right_offset]    ; next_node = current_node->right
+
+
+        ASM_fibHeapConsolidate_2_loop_start:    ; while(heap->array[current_node->degree] != NULL)
+        mov rax, [rbx + fn_degree_offset]       ; rax = current_node->degree
+        shl rax, 3                              ; rax *= 8(sizeof void*) i.e. pointer offset
+        cmp qword [rbp + rax], 0                ; if(heap->array[current_node->degree] != NULL) {
+        je ASM_fibHeapConsolidate_2_loop_end    ;
+
+        
+            mov rcx, [rbx + fn_key_offset]  ; rcx = current_node->key
+            mov rdx, [rbp + rax]            ; rdx = heap->array[current_node->degree]
+            cmp rcx, [rdx + fn_key_offset]  ; if(current_node->ket > heap->array[current_node->degree])
+            jle ASM_fibHeapConsolidate_2_if ;
+                mov rcx, rbx                ; rcx = current
+                mov rbx, rdx                ; rbx = heap->array[current_node->degree]
+                mov [rbp + rax], rcx        ; heap->arrat[current_node->degree] = current
+            ASM_fibHeapConsolidate_2_if:    ;
+
+
+            cmp [rbp + rax], r13                       ; if(heap->arrat[current_node->degree] == next_node)
+            cmove r13, [r13 + fn_right_offset] ; next_node = next_node->right
+
+
+            mov rdi, rbx            ; rdi = current_node
+            mov rsi, [rbp + rax]    ; rsi = heap->array[current_node->degree]
+            call ASM_fibNodeLink; fibNodeLink(current_node, heap->arrat[current_node->degree])
+
+
+            ; - 1 because inside the link the degree increased by 1 and we did not know about it, i.e. the rax register was not spoiled
+            mov qword [rbp + rax], 0 ; heap->arrat[current_node->degree - 1] = NULL
+
+
+        jmp ASM_fibHeapConsolidate_2_loop_start
+        ASM_fibHeapConsolidate_2_loop_end:
+
+
+        mov [rbp + rax], rbx ; heap->arrat[current_node->degree] = current_node
+        mov rbx, r13         ; current_node = next_node
+
+
+    jmp ASM_fibHeapConsolidate_1_loop_start ;
+    ASM_fibHeapConsolidate_1_loop_end:      ; }
+
+
+    mov rbx, [r12 + fh_min_offset]          ; current_node = heap->min
+    ASM_fibHeapConsolidate_3_loop_start:    ; do {
+        mov rax, [rbx + fn_degree_offset]   ; rax = current_node->degree
+        shl rax, 3                          ; rax *= 8(sizeof void*) i.e. pointer offset
+        mov qword [rbp + rax], 0            ; heap->array[current_node->degree] = NULL
+        mov rbx, [rbx + fn_right_offset]    ; current_node = current_node->right
+    cmp rbx, [r12 + fh_min_offset]          ; while(current_node != heap->min)
+    jne ASM_fibHeapConsolidate_3_loop_start ; 
+
+
+    ASM_fibHeapConsolidate_exit:
+    pop r13
+    pop r12
+    pop rbp
+    pop rbx
+    
+
+    ret
+
+;-------------------------
+;
+; FUNC: fibNodeLink
+; static inline void fibNodeLink(FibNode* first, FibNode* second)
+;
+; INPUT: rdi = first, rsi = second
+; OUTPUT: NONE
+; SPOIL; rcx, rdx
+;
+;-------------------------
+ASM_fibNodeLink:
+    push rdi                ; push first
+    mov rdi, rsi            ; rdi = second
+    call ASM_fibNodeUntie   ; fibNodeUntie(second)
+    call ASM_fibNodeFixate  ; fibNodeFixate(second)
+    pop rdi                 ; rdi = first
+
+
+    cmp qword [rdi + fn_child_offset], 0    ; if(first->child == NULL) {
+    jne ASM_fibNodeLink_1_if                ;
+        mov [rdi + fn_child_offset], rsi    ; first->child = second
+        jmp ASM_fibNodeLink_1_if_end        ;
+    ASM_fibNodeLink_1_if:                   ; } else { 
+        push rdi                            ; push first
+        mov rdi, [rdi + fn_child_offset]    ; rdi = first->child
+        call ASM_fibNodeUnionLists          ; fibNodeUnionLists(first->child, second)
+        pop rdi                             ; rdi = first
+    ASM_fibNodeLink_1_if_end:               ; }
+
+
+    inc qword [rdi + fn_degree_offset]      ; first->degree++;
+    mov [rsi + fn_parent_offset], rdi       ; second->parent = first
+
+
+    ret ; return
+
+
+;-------------------------
+;
+; FUNC: fibNodeFixate
+; static inline void fibNodeFixate(FibNode* node)
+;
+; INPUT: rdi = node
+; OUTPUT: NONE
+; SPOIL: NONE
+;
+;-------------------------
+ASM_fibNodeFixate:
+    mov [rdi + fn_left_offset], rdi     ; node->left = node
+    mov [rdi + fn_right_offset], rdi    ; node->right = node
+    ret                                 ; return
 
 section .data

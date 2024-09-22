@@ -13,17 +13,6 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "../Stack/Stack.h"
-
-#define swap(a, b)\
-    do {\
-        __typeof__ (a) temp = (a);\
-        a = b;\
-        b = temp;\
-    } while (0)\
-
-#define FIB_ARRAY_START_SIZE (50000)
-
 typedef int64_t Key_t;
 
 typedef struct ASM_FibNode {
