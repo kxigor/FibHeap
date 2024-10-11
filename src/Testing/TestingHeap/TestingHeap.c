@@ -54,6 +54,43 @@ void testingHeap(bool graphStatus) {
     fibHeapDtor(heap);
 }
 
+void ASM_testingHeap(bool graphStatus) {
+    ASM_FibHeap* heap = ASM_fibHeapCtor();
+    Stack* stk = stackCtor();
+
+    int32_t command = 0;
+    while(scanf("%d", &command) != EOF) {
+
+        switch (command)
+        {
+            case FIB_INSERT: {
+                int64_t number = 0;
+                scanf("%ld", &number);
+                stackPush(stk, ASM_fibHeapIns(heap, number));
+                break;
+            }
+            case FIB_EXT_MIN: {
+                printf("%ld\n", ASM_fibHeapGetMin(heap)->key);
+                kludge_stackDelete(stk, ASM_fibHeapGetMin(heap));
+                ASM_fibHeapExtMin(heap);
+                break;
+            }
+            case FIB_DEL_LAST: {
+                ASM_fibHeapDel(heap, stackTop(stk));
+                stackPop(stk);
+                break;
+            }
+            default:
+                break;
+        }
+        if(graphStatus)
+            generateFibHeapDot(heap);
+    }
+
+    stackDtor(stk);
+    ASM_fibHeapDtor(heap);
+}
+
 static inline int8_t kludge_stackDelete(Stack *stk, void* ptr) {
     assert(stk != NULL);
     assert(stk->data != NULL);

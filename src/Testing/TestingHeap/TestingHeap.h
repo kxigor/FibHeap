@@ -23,8 +23,7 @@
  * - Deleting the last inserted element (FIB_DEL_LAST)
  */
 
-void testing();
-void ASM_testing();
 void testingHeap(bool graphStatus);
+void ASM_testingHeap(bool graphStatus);
 
 #endif // !FIB_GENERATOR_H

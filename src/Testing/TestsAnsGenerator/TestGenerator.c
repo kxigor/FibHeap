@@ -18,14 +18,14 @@
  * For INS_MIN_BORDER, the minimum value is 1
  */
 #define INS_MIN_BORDER (1)
-#define INS_MAX_BORDER (150)
+#define INS_MAX_BORDER (50)
 #define EXT_MIN_BORDER (1)
 #define EXT_MAX_BORDER (50)
 #define DEL_MIN_BORDER (0)
 #define DEL_MAX_BORDER (0)
 
-#define NUM_MIN (-10)
-#define NUM_MAX (10)
+#define NUM_MIN (-1000)
+#define NUM_MAX (1000)
 
 static inline uint64_t getTime();
 void testGenerate(uint64_t test_size);

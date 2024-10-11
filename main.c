@@ -18,5 +18,5 @@ int32_t main(void) {
     // ASM_fibHeapDtor(asm_heap);
 
     //ASM_testing();
-    testingHeap(0);
+    ASM_testingHeap(0);
 }

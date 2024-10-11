@@ -523,31 +523,26 @@ ASM_fibNodeUntie:
 ;
 ;-------------------------
 ASM_fibHeapConsolidate:
-    ; TODO: restore registers
-    push rbx
-    push rbp
-    push r12
-    push r13
+    push rbx ; saving register for recovery
+    push rbp ;
+    push r12 ;
+    push r13 ;
 
 
-    test rdi, rdi                   ; if(rdi == NULL)
-    jz ASM_fibHeapConsolidate_exit  ;   return
+    test rdi, rdi
+    jz ASM_fibHeapConsolidate_exit
 
 
     mov r12, rdi                        ; r12 = heap
-    xor r13, r13                        ; r13 = next_node
     mov rbx, [rdi + fh_min_offset]      ; rbx = current_node = heap->min
     mov rbp, [rdi + fh_array_offset]    ; rbp = heap->array
+    mov r13, rbx                        ; r13 = end_node = current_node
 
 
-    ASM_fibHeapConsolidate_1_loop_start:
-    mov rax, [rbx + fn_degree_offset] ; rax = current_node->degree
-    shl rax, 3                        ; rax *= 8(sizeof void*) i.e. pointer offset
-    cmp rbx, [rbp + rax]              ; if(current_node != heap->arr[current_node->degree]) {
-    je ASM_fibHeapConsolidate_1_loop_end;
+    ASM_fibHeapConsolidate_1_loop_start:    ; do {
 
 
-        mov qword [rbx + fn_parent_offset], 0
+        mov qword [rbx + fn_parent_offset], 0   ; current_node->parent = NULL
 
 
         mov rcx, [r12 + fh_min_offset]      ; rcx = heap->min
@@ -558,49 +553,62 @@ ASM_fibHeapConsolidate:
         ASM_fibHeapConsolidate_1_if:        ;
 
 
-        mov r13, [rbx + fn_right_offset]    ; next_node = current_node->right
+        mov r8, [rbx + fn_right_offset]    ; r8 = next_node = current_node->right
 
 
-        ASM_fibHeapConsolidate_2_loop_start:    ; while(heap->array[current_node->degree] != NULL)
-        mov rax, [rbx + fn_degree_offset]       ; rax = current_node->degree
-        shl rax, 3                              ; rax *= 8(sizeof void*) i.e. pointer offset
-        cmp qword [rbp + rax], 0                ; if(heap->array[current_node->degree] != NULL) {
-        je ASM_fibHeapConsolidate_2_loop_end    ;
+        mov rax, [rbx + fn_degree_offset]   ; rax = current_node->degree
+        shl rax, 3                          ; rax *= 8 i.e. pointer
+        ASM_fibHeapConsolidate_2_loop_start:
+        cmp qword [rbp + rax], 0
+        je ASM_fibHeapConsolidate_2_loop_end
 
-        
+
             mov rcx, [rbx + fn_key_offset]  ; rcx = current_node->key
             mov rdx, [rbp + rax]            ; rdx = heap->array[current_node->degree]
             cmp rcx, [rdx + fn_key_offset]  ; if(current_node->ket > heap->array[current_node->degree])
             jle ASM_fibHeapConsolidate_2_if ;
                 mov rcx, rbx                ; rcx = current
                 mov rbx, rdx                ; rbx = heap->array[current_node->degree]
-                mov [rbp + rax], rcx        ; heap->arrat[current_node->degree] = current
+                mov [rbp + rax], rcx        ; heap->array[current_node->degree] = current
             ASM_fibHeapConsolidate_2_if:    ;
 
+            
+            mov rcx, qword [rbp + rax]  ; rcx = heap->array[current_node->degree]
+            
 
-            cmp [rbp + rax], r13                       ; if(heap->arrat[current_node->degree] == next_node)
-            cmove r13, [r13 + fn_right_offset] ; next_node = next_node->right
-
-
-            mov rdi, rbx            ; rdi = current_node
-            mov rsi, [rbp + rax]    ; rsi = heap->array[current_node->degree]
-            call ASM_fibNodeLink; fibNodeLink(current_node, heap->arrat[current_node->degree])
+            cmp r13, rcx                       ; if(end_node == heap->array[current_node->degree])
+            cmove r13, [r13 + fn_right_offset] ; end_node = end_node->right;
 
 
-            ; - 1 because inside the link the degree increased by 1 and we did not know about it, i.e. the rax register was not spoiled
-            mov qword [rbp + rax], 0 ; heap->arrat[current_node->degree - 1] = NULL
+            cmp r8, rcx                        ; if(next_node == heap->array[current_node->degree])
+            cmove r8, [r8 + fn_right_offset]   ; next_node = next_node->right;
 
 
-        jmp ASM_fibHeapConsolidate_2_loop_start
-        ASM_fibHeapConsolidate_2_loop_end:
+            cmp [r12 + fh_min_offset], rcx         ; if(heap->min == heap->array[current_node->degree])
+            jne ASM_fibHeapConsolidate_3_if        ; {
+                mov [r12 + fh_min_offset], rbx     ;   heap->min = current_node;
+            ASM_fibHeapConsolidate_3_if:           ; }
 
 
-        mov [rbp + rax], rbx ; heap->arrat[current_node->degree] = current_node
-        mov rbx, r13         ; current_node = next_node
+            mov rdi, rbx            ;
+            mov rsi, rcx            ;
+            call ASM_fibNodeLink    ; fibNodeLink(current_node, heap->array[current_node->degree]);
 
 
-    jmp ASM_fibHeapConsolidate_1_loop_start ;
-    ASM_fibHeapConsolidate_1_loop_end:      ; }
+            mov qword [rbp + rax], 0    ; heap->array[current_node->degree] = NULL;
+
+        add rax, 8
+        jmp ASM_fibHeapConsolidate_2_loop_start ;
+        ASM_fibHeapConsolidate_2_loop_end:      ;
+
+
+        mov [rbp + rax], rbx
+        mov rbx, r8
+
+
+    cmp rbx, r13                            ; }
+    jne ASM_fibHeapConsolidate_1_loop_start ; while(current_node != end_node);
+    ASM_fibHeapConsolidate_1_loop_end:
 
 
     mov rbx, [r12 + fh_min_offset]          ; current_node = heap->min
@@ -618,9 +626,8 @@ ASM_fibHeapConsolidate:
     pop r12
     pop rbp
     pop rbx
-    
-
     ret
+
 
 ;-------------------------
 ;

@@ -75,7 +75,7 @@ ANSWER_GENERATOR_OBJS = $(ANSWER_GENERATOR_SRCS:.cpp=.o)
 TESTING_SH = src/Testing/testsing.sh
 
 # Optional testing parameters (You can leave it empty)
-OPTIONATESTING_SH_OPTIONAL_PARAMSL = -n 1000000 -s 1000000 # For example: -n 100000 -s 100
+OPTIONATESTING_SH_OPTIONAL_PARAMSL = -n 1000000 -s 300000 # For example: -n 100000 -s 100
 
 %.o: %.c
 	@mkdir -p $(dir $(OBJ_DIR)/$@)
