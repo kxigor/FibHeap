@@ -1,11 +1,16 @@
 #ifndef FIB_GENERATOR_H
 #define FIB_GENERATOR_H
 
-#include "../ASM_FibHeap/ASM_FibHeap.h"
-#include "../FibHeap/FibHeap.h"
-#include "../Graph/Graph.h"
-#include "../Stack/Stack.h"
-#include "./GlobalHeaderTesting.h"
+#include <unistd.h>
+
+#include <sys/stat.h>
+#include <sys/types.h>
+
+#include "../../ASM_FibHeap/ASM_FibHeap.h"
+#include "../../FibHeap/FibHeap.h"
+#include "../../Graph/Graph.h"
+#include "../../Stack/Stack.h"
+#include "../GlobalHeaderTesting.h"
 
 /**
  * @brief Starts the testing process using a Fibonacci heap and stack.
@@ -20,5 +25,6 @@
 
 void testing();
 void ASM_testing();
+void testingHeap(bool graphStatus);
 
 #endif // !FIB_GENERATOR_H

@@ -674,4 +674,8 @@ ASM_fibNodeFixate:
     mov [rdi + fn_right_offset], rdi    ; node->right = node
     ret                                 ; return
 
+ASM_fibHeapDel:
+    ; TODO write
+    ret
+
 section .data

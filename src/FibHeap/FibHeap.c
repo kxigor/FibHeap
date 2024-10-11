@@ -333,109 +333,39 @@ static inline void fibNodeUnionLists(FibNode* first, FibNode* second) {
 
 static inline void fibHeapConsolidate(FibHeap* heap) {
     assert(heap != NULL);
-
-    /*
-        The implementation is different from the Cormen implementation. 
-        I tried to save memory and reduce execution time as much as possible. 
-        Therefore, the heap is updated dynamically.
-    */
-
-    /*Defining the current pointer*/
     FibNode* currnet_node = heap->min;
-
-    /*
-        We define a pointer to the next node because 
-        it may happen that the current pointer is suspended somewhere 
-        (a bug will naturally occur when trying node->right because 
-        we will already be at a level below the root).
-    */
-    FibNode* next_node = NULL;
-
-    /*
-        It is also a very subtle point. 
-        We move until we meet a repeating 
-        (already existing in the array of nodes) element. 
-        In this case, we cannot use (as in other cases) 
-        a pointer to the starting node, 
-        since it may hang somewhere.
-    */
-    while(currnet_node != heap->array[currnet_node->degree]) {
-        /*
-            After we suspended the children, 
-            we did not update their parents, 
-            so we need to take care of this now.
-        */
+    FibNode* end_node = currnet_node;
+    do {
         currnet_node->parent = NULL;
-
-        /*
-            Our pile is still incorrect 
-            because the minimum element 
-            is somewhere in the root list, 
-            so do not forget to check for the minimum.
-        */
-        if(heap->min->key > currnet_node->key)
-            heap->min = currnet_node;
-
-        /*
-            Our task is to go through all the root nodes, 
-            if it happens that we hang the current node somewhere, 
-            then we will go through the elements a second time. 
-            So you need to keep a pointer to the next element.
-        */
-        next_node = currnet_node->right;
-
-        /*
-            It may obviously happen that we have 
-            a sequence of overhanging because 
-            the degrees are already occupied.
-        */
-        while(heap->array[currnet_node->degree] != NULL) {
-
-            /*
-                We hang the larger key to the smaller one 
-                (accordingly, in order not to repeat ourselves, we do a swap)
-            */
-            if(currnet_node->key > heap->array[currnet_node->degree]->key)
+        if(heap->min->key > currnet_node->key) {
+            heap->min= currnet_node;
+        }
+        FibNode* next_node = currnet_node->right;
+        while (heap->array[currnet_node->degree] != NULL) {
+            if(currnet_node->key > heap->array[currnet_node->degree]->key) {
                 swap(currnet_node, heap->array[currnet_node->degree]);
-
-            /*
-                It may happen that the next element must be suspended 
-                (this is already looping at the end, i.e. 
-                the last iteration under certain conditions). 
-                We are processing this moment.
-            */
-            if(next_node == heap->array[currnet_node->degree])
+            }
+            if(end_node == heap->array[currnet_node->degree]) {
+                end_node = end_node->right;
+            }
+            if(next_node == heap->array[currnet_node->degree]) {
                 next_node = next_node->right;
-            
-            /*We hang the larger key to the smaller one*/
+            }
+            if(heap->min == heap->array[currnet_node->degree]) {
+                heap->min = currnet_node;
+            }
             fibNodeLink(currnet_node, heap->array[currnet_node->degree]);
-
-            /*After linking, we clear the position of the linked element*/
             heap->array[currnet_node->degree - 1] = NULL;
         }
-
-        /*
-            After all the manipulations, 
-            we remember the element with the current degree.
-        */
         heap->array[currnet_node->degree] = currnet_node;
-
-        /*Moving on to the next node*/
         currnet_node = next_node;
-    }
+    } while(currnet_node != end_node);
 
-    /*
-        We save memory and iterations. 
-        Therefore, we clear the array of degrees.
-    */
     currnet_node = heap->min;
     do {
         heap->array[currnet_node->degree] = NULL;
         currnet_node = currnet_node->right;
     } while(currnet_node != heap->min);
-
-    for(uint64_t i = 0; i < FIB_ARRAY_START_SIZE; i++)
-        assert(heap->array[i] == NULL);
 }
 
 static inline void fibNodeLink(FibNode* first, FibNode* second) {
@@ -454,7 +384,6 @@ static inline void fibNodeLink(FibNode* first, FibNode* second) {
     else
         fibNodeUnionLists(first->child, second);
 
-    /*It is assumed that as a result of tying, the degree will increase*/
     first->degree++;
 
     /*Do not forget to update the parent*/

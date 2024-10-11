@@ -3,7 +3,7 @@
 #include "./src/ASM_FibHeap/ASM_FibHeap.h"
 #include "./src/FibHeap/FibHeap.h"
 #include "./src/Graph/Graph.h"
-#include "./src/Testing/FibHeapTesting.h"
+#include "./src/Testing/TestingHeap/TestingHeap.h"
 
 int32_t main(void) {
     /*Run the tests*/
@@ -18,5 +18,5 @@ int32_t main(void) {
     // ASM_fibHeapDtor(asm_heap);
 
     //ASM_testing();
-    testing();
+    testingHeap(0);
 }

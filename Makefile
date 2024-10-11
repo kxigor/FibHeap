@@ -56,10 +56,13 @@ SRCS  = main.c
 SRCS += src/FibHeap/FibHeap.c
 SRCS += src/Stack/Stack.c
 SRCS += src/Graph/Graph.c
-SRCS += src/Testing/FibHeapTesting.c
+SRCS += src/Dirs/Dirs.c
+SRCS += src/Testing/TestingHeap/TestingHeap.c
+
 SRCS_ASM  = src/ASM_FibHeap/ASM_FibHeap.asm
-ANSWER_GENERATOR_SRCS = src/Testing/AnswersGenerator.cpp
-TEST_GENERATOR_SRCS = src/Testing/TestGenerator.c
+
+ANSWER_GENERATOR_SRCS = src/Testing/TestsAnsGenerator/AnsGenerator.cpp
+TEST_GENERATOR_SRCS = src/Testing/TestsAnsGenerator/TestGenerator.c
 
 # Objects
 OBJS  = $(SRCS:.c=.o)
@@ -72,7 +75,7 @@ ANSWER_GENERATOR_OBJS = $(ANSWER_GENERATOR_SRCS:.cpp=.o)
 TESTING_SH = src/Testing/testsing.sh
 
 # Optional testing parameters (You can leave it empty)
-OPTIONATESTING_SH_OPTIONAL_PARAMSL = -n 10000000 -s 60000 # For example: -n 100000 -s 100
+OPTIONATESTING_SH_OPTIONAL_PARAMSL = -n 1000000 -s 1000000 # For example: -n 100000 -s 100
 
 %.o: %.c
 	@mkdir -p $(dir $(OBJ_DIR)/$@)

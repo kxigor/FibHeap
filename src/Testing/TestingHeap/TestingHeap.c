@@ -1,4 +1,4 @@
-#include "FibHeapTesting.h"
+#include "TestingHeap.h"
 
 /**
  * @brief Deletes a pointer from the stack.
@@ -17,12 +17,13 @@
  */
 static inline int8_t kludge_stackDelete(Stack* stk, void* ptr);
 
-void testing() {
+void testingHeap(bool graphStatus) {
     FibHeap* heap = fibHeapCtor();
     Stack* stk = stackCtor();
 
     int32_t command = 0;
-    while(scanf("%d", &command) == 1) {
+    while(scanf("%d", &command) != EOF) {
+
         switch (command)
         {
             case FIB_INSERT: {
@@ -38,53 +39,19 @@ void testing() {
                 break;
             }
             case FIB_DEL_LAST: {
-                /*fibHeapDel(heap, stackTop(stk));*/
+                fibHeapDel(heap, stackTop(stk));
                 stackPop(stk);
                 break;
             }
             default:
                 break;
         }
-        //generateFibHeapDot(heap);
+        if(graphStatus)
+            generateFibHeapDot(heap);
     }
 
     stackDtor(stk);
     fibHeapDtor(heap);
-}
-
-void ASM_testing() {
-    ASM_FibHeap* heap = ASM_fibHeapCtor();
-    Stack* stk = stackCtor();
-
-    int32_t command = 0;
-    while(scanf("%d", &command) == 1) {
-        switch (command)
-        {
-            case FIB_INSERT: {
-                int64_t number = 0;
-                scanf("%ld", &number);
-                stackPush(stk, ASM_fibHeapIns(heap, number));
-                break;
-            }
-            case FIB_EXT_MIN: {
-                printf("%ld\n", ASM_fibHeapGetMin(heap)->key);
-                kludge_stackDelete(stk, ASM_fibHeapGetMin(heap));
-                ASM_fibHeapExtMin(heap);
-                break;
-            }
-            case FIB_DEL_LAST: {
-                /*ASM_fibHeapDel(heap, stackTop(stk));*/
-                stackPop(stk);
-                break;
-            }
-            default:
-                break;
-        }
-        //generateFibHeapDot(heap);
-    }
-
-    stackDtor(stk);
-    ASM_fibHeapDtor(heap);
 }
 
 static inline int8_t kludge_stackDelete(Stack *stk, void* ptr) {
