@@ -11,6 +11,42 @@
  * - Extracting the minimum element from the heap (FIB_EXT_MIN)
  * - Deleting the last inserted element (FIB_DEL_LAST)
  */
+
 void testing(bool graph);
+void ASM_testing(bool graph);
+
+#define MAKE_TESTING(prefix) \
+  void prefix##testing(bool graph) { \
+    prefix##FibHeap* heap = prefix##fibHeapCtor(); \
+    ImprovedVector<prefix##FibNode*> stk; \
+    int32_t command = 0; \
+    while (scanf("%d", &command) == 1) { \
+      switch (command) { \
+        case FIB_INSERT: { \
+          int64_t number = 0; \
+          scanf("%ld", &number); \
+          stk.push(prefix##fibHeapIns(heap, number)); \
+          break; \
+        } \
+        case FIB_EXT_MIN: { \
+          printf("%ld\n", prefix##fibHeapGetMin(heap)->key); \
+          stk.erase(prefix##fibHeapGetMin(heap)); \
+          prefix##fibHeapExtMin(heap); \
+          break; \
+        } \
+        case FIB_DEL_ALMOST_LAST: { \
+          prefix##fibHeapDel(heap, stk.top().value()); \
+          stk.pop(); \
+          break; \
+        } \
+        default: \
+          break; \
+      } \
+      if (graph) { \
+        generateFibHeapDot(heap); \
+      } \
+    } \
+    prefix##fibHeapDtor(heap); \
+  }
 
 #endif // !FIB_GENERATOR_H

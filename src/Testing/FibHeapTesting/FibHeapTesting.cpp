@@ -8,35 +8,5 @@ extern "C" {
 #include "../GlobalHeaderTesting.h"
 }
 
-void testing(bool graph) {
-  FibHeap* heap = fibHeapCtor();
-  ImprovedVector<FibNode*> stk;
-  int32_t command = 0;
-  while (scanf("%d", &command) == 1) {
-    switch (command) {
-      case FIB_INSERT: {
-        int64_t number = 0;
-        scanf("%ld", &number);
-        stk.push(fibHeapIns(heap, number));
-        break;
-      }
-      case FIB_EXT_MIN: {
-        printf("%ld\n", fibHeapGetMin(heap)->key);
-        stk.erase(fibHeapGetMin(heap));
-        fibHeapExtMin(heap);
-        break;
-      }
-      case FIB_DEL_ALMOST_LAST: {
-        fibHeapDel(heap, stk.top().value());
-        stk.pop();
-        break;
-      }
-      default:
-        break;
-    }
-    if (graph) {
-      generateFibHeapDot(heap);
-    }
-  }
-  fibHeapDtor(heap);
-}
+MAKE_TESTING()
+//MAKE_TESTING(ASM_)
