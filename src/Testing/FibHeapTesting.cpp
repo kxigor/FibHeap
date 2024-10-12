@@ -29,7 +29,6 @@ void testing(bool graph) {
                 break;
             }
             case FIB_DEL_ALMOST_LAST: {
-                printf("%p\n", stk.top().value());
                 fibHeapDel(heap, stk.top().value());
                 stk.pop();
                 break;

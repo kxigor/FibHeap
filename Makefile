@@ -75,7 +75,7 @@ TESTING_SH = src/Testing/testsing.sh
 
 # Optional testing parameters (You can leave it empty)
 # -n : number of tests, -s : the size of the tests
-OPTIONATESTING_SH_OPTIONAL_PARAMSL = -n 10000 -s 10 # For example: -n 100000 -s 100
+OPTIONATESTING_SH_OPTIONAL_PARAMSL = -n 100 -s 100000 # For example: -n 100000 -s 100
 
 %.o: %.c
 	@mkdir -p $(dir $(OBJ_DIR)/$@)

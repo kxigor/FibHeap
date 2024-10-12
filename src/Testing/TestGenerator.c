@@ -19,14 +19,14 @@
 #define DIFFERENT_NUMBERS
 
 #define INS_MIN_BORDER (1)
-#define INS_MAX_BORDER (50)
+#define INS_MAX_BORDER (100)
 #define EXT_MIN_BORDER (1)
 #define EXT_MAX_BORDER (50)
-#define DEL_MIN_BORDER (0)
-#define DEL_MAX_BORDER (0)
+#define DEL_MIN_BORDER (1)
+#define DEL_MAX_BORDER (50)
 
-#define NUM_MIN (-50)
-#define NUM_MAX (50)
+#define NUM_MIN (-50000)
+#define NUM_MAX (50000)
 
 void testGenerate(uint64_t test_size);
 
@@ -61,7 +61,8 @@ void testGenerate(uint64_t test_size) {
     unique_arr[i] = NUM_MIN + (int32_t)i;
   }
   for (size_t i = 1; i < test_size; i++) {
-    swap(unique_arr[i], unique_arr[genRand(0, (int32_t)i - 1)]);
+    size_t j = genRand(0, (int32_t)i - 1);
+    swap(unique_arr[i], unique_arr[j]);
   }
 #endif
 
