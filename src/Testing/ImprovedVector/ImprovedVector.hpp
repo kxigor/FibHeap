@@ -6,9 +6,7 @@ template<typename T>
 class ImprovedVector{
  private:
  public:
-  ImprovedVector() {
-
-  };
+  ImprovedVector() = default;
 
   void push(const T& element) {
     data_.push_back(element);
@@ -26,6 +24,7 @@ class ImprovedVector{
     if(!data_.empty()) {
       return data_.back();
     }
+    return std::nullopt;
   }
 
   void erase(const T& element) {
