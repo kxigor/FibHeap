@@ -1,6 +1,6 @@
 # Compiler
 CC = gcc
-CPP = g++
+CPP = g++ -std=c++20
 ASM = nasm
 
 # Fib heap program name
@@ -55,6 +55,7 @@ OBJ_DIR = obj
 SRCS_C = src/FibHeap/FibHeap.c
 SRCS_C += src/Stack/Stack.c
 SRCS_C += src/Graph/Graph.c
+SRCS_ASM = src/ASM_FibHeap/ASM_FibHeap.asm
 
 SRCS_TG_C = src/Testing/TestGenerator/TestGenerator.c
 
@@ -64,8 +65,9 @@ SRCS_CPP += src/Testing/FibHeapTesting/FibHeapTesting.cpp
 SRCS_AG_CPP = src/Testing/AnswersGenerator/AnswersGenerator.cpp
 
 # Objects
-OBJS_C  = $(SRCS_C:.c=.o)
-OBJS_TG_C = $(SRCS_TG_C:.c=.o)
+OBJS_C     = $(SRCS_C:.c=.o)
+OBJS_C    += $(SRCS_ASM:.asm=.o)
+OBJS_TG_C  = $(SRCS_TG_C:.c=.o)
 
 OBJS_CPP  = $(SRCS_CPP:.cpp=.o)
 OBJS_AG_CPP = $(SRCS_AG_CPP:.cpp=.o)

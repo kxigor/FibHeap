@@ -1,6 +1,8 @@
 #ifndef FIB_GENERATOR_H
 #define FIB_GENERATOR_H
 
+#include "../ImprovedVector/ImprovedVector.hpp"
+
 /**
  * @brief Starts the testing process using a Fibonacci heap and stack.
  *
@@ -43,7 +45,7 @@ void ASM_testing(bool graph);
           break; \
       } \
       if (graph) { \
-        generateFibHeapDot(heap); \
+        generateFibHeapDot(reinterpret_cast<FibHeap*>(heap)); \
       } \
     } \
     prefix##fibHeapDtor(heap); \

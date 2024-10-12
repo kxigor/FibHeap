@@ -31,7 +31,6 @@ typedef struct ASM_FibHeap {
     ASM_FibNode** array;
 } ASM_FibHeap;
 
-
 extern ASM_FibHeap* ASM_fibHeapCtor(void);
 extern ASM_FibHeap* ASM_fibHeapInit(Key_t key);
 extern void ASM_fibHeapDtor(ASM_FibHeap* heap);

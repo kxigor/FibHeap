@@ -20,31 +20,6 @@
 */
 
 /**
- * @brief Swap the values of two variables.
- *
- * This macro swaps the values of two variables using a temporary variable.
- * It uses the `__typeof__` operator to ensure that the temporary variable
- * is of the same type as the input variables.
- *
- * @param a The first variable to be swapped.
- * @param b The second variable to be swapped.
- *
- * Example usage:
- * @code
- * int x = 5, y = 10;
- * swap(x, y);
- * // Now x is 10 and y is 5
- * @endcode
- * @warning a and b must be of the same type!
- */
-#define swap(a, b)\
-    do {\
-        __typeof__ (a) temp = (a);\
-        a = b;\
-        b = temp;\
-    } while (0)\
-
-/**
  * @brief Maximum size of the heap merge array.
  * @warning The program does not provide overflow checks for this array!
  */
