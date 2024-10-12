@@ -1,11 +1,6 @@
 #ifndef FIB_GENERATOR_H
 #define FIB_GENERATOR_H
 
-#include "../FibHeap/FibHeap.h"
-#include "../Graph/Graph.h"
-#include "../Stack/Stack.h"
-#include "./GlobalHeaderTesting.h"
-
 /**
  * @brief Starts the testing process using a Fibonacci heap and stack.
  *
@@ -16,6 +11,6 @@
  * - Extracting the minimum element from the heap (FIB_EXT_MIN)
  * - Deleting the last inserted element (FIB_DEL_LAST)
  */
-void testing();
+void testing(bool graph);
 
 #endif // !FIB_GENERATOR_H

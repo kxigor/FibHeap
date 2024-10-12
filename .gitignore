@@ -58,5 +58,5 @@ dkms.conf
 docs
 
 # Trash
-fib_heap.png
 fib_heap.dot
+fib_heap.png

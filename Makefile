@@ -41,7 +41,7 @@ CFLAGS += -D _DEBUG \
          -fstack-protector -fstrict-overflow \
          -flto-odr-type-merging \
          -fno-omit-frame-pointer \
-         -Wlarger-than=8192 -Wstack-usage=8192 \
+         -Wstack-usage=8192 \
          -pie -fPIE -Werror=vla \
          -fsanitize=address,alignment,bool,bounds,enum,float-cast-overflow,float-divide-by-zero,integer-divide-by-zero,leak,nonnull-attribute,null,object-size,return,returns-nonnull-attribute,shift,signed-integer-overflow,undefined,unreachable,vla-bound,vptr
 
@@ -52,42 +52,47 @@ GDBFLAGS = -g
 OBJ_DIR = obj
 
 # Sources
-SRCS  = main.c
-SRCS += src/FibHeap/FibHeap.c
-SRCS += src/Stack/Stack.c
-SRCS += src/Graph/Graph.c
-SRCS += src/Testing/FibHeapTesting.c
-SRCS_ASM  = src/ASM_FibHeap/ASM_FibHeap.asm
-ANSWER_GENERATOR_SRCS = src/Testing/AnswersGenerator.cpp
-TEST_GENERATOR_SRCS = src/Testing/TestGenerator.c
+SRCS_C = src/FibHeap/FibHeap.c
+SRCS_C += src/Stack/Stack.c
+SRCS_C += src/Graph/Graph.c
+
+SRCS_TG_C = src/Testing/TestGenerator.c
+
+SRCS_CPP = main.cpp
+SRCS_CPP += src/Testing/FibHeapTesting.cpp
+
+SRCS_AG_CPP = src/Testing/AnswersGenerator.cpp
 
 # Objects
-OBJS  = $(SRCS:.c=.o)
-OBJS += $(SRCS_ASM:.asm=.o)
+OBJS_C  = $(SRCS_C:.c=.o)
+OBJS_TG_C = $(SRCS_TG_C:.c=.o)
 
-TEST_GENERATOR_OBJS = $(TEST_GENERATOR_SRCS:.c=.o)
-ANSWER_GENERATOR_OBJS = $(ANSWER_GENERATOR_SRCS:.cpp=.o)
+OBJS_CPP  = $(SRCS_CPP:.cpp=.o)
+OBJS_AG_CPP = $(SRCS_AG_CPP:.cpp=.o)
 
 # Testing script
 TESTING_SH = src/Testing/testsing.sh
 
 # Optional testing parameters (You can leave it empty)
-OPTIONATESTING_SH_OPTIONAL_PARAMSL = -n 10 -s 10000000 # For example: -n 100000 -s 100
+# -n : number of tests, -s : the size of the tests
+OPTIONATESTING_SH_OPTIONAL_PARAMSL = -n 10000 -s 10 # For example: -n 100000 -s 100
 
 %.o: %.c
 	@mkdir -p $(dir $(OBJ_DIR)/$@)
 	@$(CC) $(CFLAGS) $(GDBFLAGS) -c $< -o $(OBJ_DIR)/$@ -lm
+
 %.o: %.cpp
 	@mkdir -p $(dir $(OBJ_DIR)/$@)
 	@$(CPP) $(CFLAGS) $(GDBFLAGS) -c $< -o $(OBJ_DIR)/$@ -lm
+
 %.o: %.asm
 	@mkdir -p $(dir $(OBJ_DIR)/$@)
 	@$(ASM) -f elf64 $(GDBFLAGS) $< -o $(OBJ_DIR)/$@
 
-compile: $(OBJS) $(TEST_GENERATOR_OBJS) $(ANSWER_GENERATOR_OBJS)
-	@$(CC)  $(CFLAGS) $(patsubst %,obj/%,$(OBJS)) 					-o $(PNAME)
-	@$(CC)  $(CFLAGS) $(patsubst %,obj/%,$(TEST_GENERATOR_OBJS)) 	-o $(TNAME)
-	@$(CPP) $(CFLAGS) $(patsubst %,obj/%,$(ANSWER_GENERATOR_OBJS)) 	-o $(ANAME)
+compile: $(OBJS_C) $(OBJS_CPP) $(OBJS_TG_C) $(OBJS_AG_CPP)
+	@$(CPP) $(CFLAGS) $(patsubst %,obj/%,$(OBJS_C)) $(patsubst %,obj/%,$(OBJS_CPP)) -o $(PNAME)
+	@$(CC) $(CFLAGS) $(patsubst %,obj/%,$(OBJS_TG_C)) -o $(TNAME)
+	@$(CPP) $(CFLAGS) $(patsubst %,obj/%,$(OBJS_AG_CPP)) -o $(ANAME)
 
 testing: 
 	@$(TESTING_SH) -p $(PNAME) -t $(TNAME) -a $(ANAME) $(OPTIONATESTING_SH_OPTIONAL_PARAMSL)
