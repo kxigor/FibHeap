@@ -5,5 +5,5 @@
 int32_t main(void) {
     /*Run the tests*/
     //testing(0);
-    ASM_testing(1);
+    ASM_testing(false);
 }

@@ -472,8 +472,6 @@ ASM_fibNodeDtor:
 ;
 ;-------------------------
 ASM_fibNodeUnionLists:
-
-
     test rdi, rdi                   ; if(first == NULL)
     jz ASM_fibNodeUnionLists_exit   ;   return
     test rsi, rsi                   ; if(second == NULL)
@@ -558,9 +556,9 @@ ASM_fibHeapConsolidate:
 
         mov rax, [rbx + fn_degree_offset]   ; rax = current_node->degree
         shl rax, 3                          ; rax *= 8 i.e. pointer
-        ASM_fibHeapConsolidate_2_loop_start:
-        cmp qword [rbp + rax], 0
-        je ASM_fibHeapConsolidate_2_loop_end
+        ASM_fibHeapConsolidate_2_loop_start:;
+        cmp qword [rbp + rax], 0            ; while(heap->array[currnet_node->degree] != NULL)
+        je ASM_fibHeapConsolidate_2_loop_end;
 
 
             mov rcx, [rbx + fn_key_offset]  ; rcx = current_node->key
@@ -681,8 +679,148 @@ ASM_fibNodeFixate:
     mov [rdi + fn_right_offset], rdi    ; node->right = node
     ret                                 ; return
 
+;-------------------------
+;
+; FUNC: fibHeapDel
+; void fibHeapDel(FibHeap* heap, FibNode* node)
+;
+; INPUT: rdi = heap, rsi = node
+; OUTPUT: NONE
+; SPOIL: rdx
+;
+;-------------------------
 ASM_fibHeapDel:
-    ; TODO write
+    mov rdx, [rdi + fh_min_offset]  ;
+    mov rdx, [rdx + fn_key_offset]  ;
+    dec rdx                         ; rdx = new_key = heap->min->key - 1
+
+
+    call ASM_fibHeapOverrideKey     ; fibHeapOverrideKey(heap, node, new_key)
+    call ASM_fibHeapExtMin          ; fibHeapExtMin(heap);
+
+
     ret
+
+;-------------------------
+;
+; FUNC: fibHeapOverrideKey
+; void fibHeapOverrideKey(FibHeap* heap, FibNode* node, Key_t new_key)
+;
+; INPUT: rdi = heap, rsi = node, rdx = new_key
+; OUTPUT: NONE
+; SPOIL: rax, rcx, rdx
+;
+;-------------------------
+ASM_fibHeapOverrideKey:
+    mov [rsi + fn_key_offset], rdx  ; node->key = new_key
+
+
+    mov rax, [rsi + fn_parent_offset]           ; rax = node->parent
+    test rax, rax                               ;
+    jz ASM_fibHeapOverrideKey_1_if              ; if(node->parent != NULL) {
+        mov rcx, [rsi + fn_key_offset]          ; rcx = node->key
+        cmp [rax + fn_key_offset], rcx          ; if(node->parent->key > node->key) {
+        jle ASM_fibHeapOverrideKey_2_if         ;
+            push rsi                            ; push node
+            mov rcx, [rsi + fn_parent_offset]   ; rcx = parent = node->parent
+            push rcx                            ; push parent = node->parent
+            call ASM_fibHeapCut                 ; fibHeapCut(heap, node)
+            pop rsi                             ; rsi = parent
+            call ASM_fibHeapСascadingCut        ; fibHeapСascadingCut(heap, parent)
+            pop rsi                             ; rsi = node
+        ASM_fibHeapOverrideKey_2_if:            ; }
+    ASM_fibHeapOverrideKey_1_if:                ; }
+
+
+    mov rax, [rdi + fh_min_offset]      ; rax = heap->min
+    mov rax, [rax + fn_key_offset]      ; rax = heap->min->key
+    cmp rax, [rsi + fn_key_offset]      ; if(heap->min->key > node->key) 
+    jle .if_3_end                       ; {
+        mov [rdi + fh_min_offset], rsi  ;   heap->min = node
+    .if_3_end:                          ; }
+
+
+    ret
+
+;-------------------------
+;
+; FUNC: fibHeapCut
+; void fibHeapCut(FibHeap* heap, FibNode* node)
+;
+; INPUT: rdi = heap, rsi = node
+; OUTPUT: NONE
+; SPOIL: rcx, rdx
+;
+;-------------------------
+ASM_fibHeapCut:
+    mov byte [rsi + fn_mark_offset], 0  ; node->mark = false
+
+
+    mov rdx, rsi                            ;
+    mov rdx, [rdx + fn_parent_offset]       ; rdx = node->parent
+    dec qword [rdx + fn_degree_offset]  ; --node->parent->degree;
+
+
+    cmp rsi, [rdx + fn_child_offset]                    ; if(node->parent->child == node) {
+    jne .if_1_end                                       ; 
+        cmp rsi, [rsi + fn_left_offset]                 ; if(node == node->left) {
+        jne .if_2_else                                  ; 
+            mov qword [rdx + fn_child_offset], 0    ; node->parent->child = NULL
+            jmp .if_2_end                               ;
+        .if_2_else:                                     ; } else {
+            mov rcx, [rsi + fn_left_offset]             ; rcx = node->left
+            mov [rdx + fn_child_offset], rcx            ; node->parent->child = node->left
+        .if_2_end:                                      ; }
+    .if_1_end:
+
+
+    push rdi                ;
+    mov rdi, rsi            ; rdi = node
+    call ASM_fibNodeUntie   ; fibNodeUntie(node)
+    call ASM_fibNodeFixate  ; fibNodeFixate(node)
+    pop rdi                 ;
+
+
+    mov qword [rsi + fn_parent_offset], 0 ; node->parent = NULL
+
+
+    push rdi                        ;
+    mov rdi, [rdi + fh_min_offset]  ; rdi = heap->min
+    call ASM_fibNodeUnionLists      ; fibNodeUnionLists(heap->min, node)
+    pop rdi                         ;
+
+
+    ret
+
+;-------------------------
+;
+; FUNC: ASM_fibHeapСascadingCut
+; void ASM_fibHeapСascadingCut(FibHeap* heap, FibNode* node)
+;
+; INPUT: rdi = heap, rsi = node
+; OUTPUT: NONE
+; SPOIL: rdx, rsi
+;
+;-------------------------
+ASM_fibHeapСascadingCut:
+    mov rdx, [rsi + fn_parent_offset]   ; rdx = parent = node->parent
+
+
+    .while_start:   ; while(parnet != NULL)
+    test rdx, rdx   ; {
+    jz .while_end   ;
+        cmp byte [rsi + fn_mark_offset], 0      ; if(node->mark == false)
+        jne .if_1_end                               ; {
+            mov byte [rsi + fn_mark_offset], 1  ; node->mark = true
+            jmp .while_end                          ; break
+        .if_1_end:                                  ; }
+        call ASM_fibHeapCut                 ; fibHeapCut(heap, node)
+        mov rsi, rdx                        ; node = parent
+        mov rdx, [rsi + fn_parent_offset]   ; parent = node->parent
+    .while_end:     ; }
+
+
+    ret
+
 
 section .data

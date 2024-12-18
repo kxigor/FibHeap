@@ -54,7 +54,7 @@
 #define DIFFERENT_NUMBERS
 
 #define INS_MIN_BORDER (1)
-#define INS_MAX_BORDER (100)
+#define INS_MAX_BORDER (1000)
 #define EXT_MIN_BORDER (1)
 #define EXT_MAX_BORDER (50)
 #define DEL_MIN_BORDER (1)

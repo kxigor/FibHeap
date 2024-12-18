@@ -9,7 +9,7 @@ extern "C" {
 }
 
 MAKE_TESTING()
-// MAKE_TESTING(ASM_)
+//MAKE_TESTING(ASM_)
 
 void ASM_testing(bool graph) {
   ASM_FibHeap* heap = ASM_fibHeapCtor();
