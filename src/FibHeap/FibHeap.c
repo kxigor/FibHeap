@@ -120,7 +120,6 @@ FibHeap* fibHeapInit(Key_t key) {
 void fibHeapDtor(FibHeap* heap) {
     assert(heap != NULL);
 
-    /*Non-recursive node deletion*/
     fibNodeDtor(heap->min);
 
     free(heap->array);
@@ -130,27 +129,16 @@ void fibHeapDtor(FibHeap* heap) {
 FibNode* fibHeapIns(FibHeap* heap, Key_t key) {
     assert(heap != NULL);
 
-    /*
-        I partially repeat what is written in merge, 
-        but this is how I try to get rid of creating 
-        a new heap in order to improve performance.
-    */
-
-    /*Creating a node with a key*/
     FibNode* new_node = fibNodeInit(key);
-    /*If heap empty then link new minimum*/
     if(heap->size == 0) {
         heap->min = new_node;
-    }
-    /*If heap not empty then combining the node lists*/
-    else {
+    } else {
         fibNodeUnionLists(heap->min, new_node);
-        /*Do not forget to update the minimum*/
-        if(heap->min->key > new_node->key)
+        if(heap->min->key > new_node->key) {
             heap->min = new_node;
+        }
     }
-    /*The heap size has been increased by one*/
-    heap->size++;
+    ++heap->size;
 
     return new_node;
 }
@@ -159,17 +147,9 @@ void fibHeapDel(FibHeap* heap, FibNode* node) {
     assert(heap != NULL);
     assert(node != NULL);
 
-    /*
-        To delete a node, we make its,
-        value less than the minimum 
-        (there may be bugs if the minimum 
-        is already the minimum, i.e. INT64_MIN).
-    */
     Key_t new_key = heap->min->key - 1;
 
-    /*Overwriting with a new key*/
     fibHeapOverrideKey(heap, node, new_key);
-    /*We extract the minimum (respectively, our node)*/
     fibHeapExtMin(heap);
 }
 
@@ -181,12 +161,10 @@ FibNode* fibHeapGetMin(const FibHeap* heap) {
 void fibHeapExtMin(FibHeap* heap) {
     assert(heap != NULL);
 
-    /*If the heap is empty, there is nothing to extract*/
     if(heap->size == 0) {
         return;
     }
 
-    /*Let's process one element separately to clear heap->min*/
     if(heap->size == 1) {
         free(heap->min);
         heap->min = NULL;
@@ -194,36 +172,18 @@ void fibHeapExtMin(FibHeap* heap) {
         return;
     }
 
-    /*Memorizing the node to delete*/
     FibNode* delete_node = heap->min;
 
-    /*
-        Reconnecting the heap elements.
-        We union the children at the root.
-    */
-    if(heap->min->child != NULL)
+    if(heap->min->child != NULL) {
         fibNodeUnionLists(heap->min, heap->min->child);
-    /*
-        The heap is incorrect at this point, 
-        since min does not indicate the minimum element, 
-        this will be corrected in Consolidate.
-    */
+    }
 
-    /*Untying the minimum*/
     fibNodeUntie(heap->min);
-    /*
-        We have untied the minimum, 
-        but we have not changed its connections, 
-        so this entry makes sense.
-    */
     heap->min = heap->min->right;
 
-    /*Freeing up the memory of the minimum element*/
     free(delete_node);
-    /*The heap size has been decreased by one*/
     heap->size--;
 
-    /*Restoring the heap*/
     fibHeapConsolidate(heap);
 }
 
@@ -231,7 +191,6 @@ void fibHeapMerge(FibHeap* first, FibHeap* second) {
     assert(first != NULL);
     assert(second != NULL);
 
-    /*We handle the case if the first heap is empty*/
     if(first->size == 0) {
         first->min = second->min;
         first->size = second->size;
@@ -239,23 +198,19 @@ void fibHeapMerge(FibHeap* first, FibHeap* second) {
         return;
     }
 
-    /*We handle the case if the second heap is empty*/
     if(second->size == 0) {
         free(second);
         return;
     }
 
-    /*Unioning the root lists of two heaps*/
     fibNodeUnionLists(first->min, second->min);
 
-    /*Do not forget to update the minimum*/
-    if(first->min->key > second->min->key)
+    if(first->min->key > second->min->key) {
         first->min = second->min;
+    }
     
-    /*Do not forget to summarize the size*/
     first->size += second->size;
 
-    /*Freeing up memory after merging*/
     free(second);
 }
 
@@ -270,7 +225,6 @@ void fibHeapOverrideKey(FibHeap* heap, FibNode* node, Key_t new_key) {
 
     node->key = new_key;
 
-    /*We apply cascading cutting of children up the lists*/
     if(node->parent != NULL) {
         if(node->parent->key > node->key) {
             FibNode* parent = node->parent;
@@ -279,16 +233,15 @@ void fibHeapOverrideKey(FibHeap* heap, FibNode* node, Key_t new_key) {
         }
     }
 
-    /*Do not forget to update the minimum*/
-    if(heap->min->key > node->key)
+    if(heap->min->key > node->key) {
         heap->min = node;
+    }
 }
 
 static inline FibNode* fibNodeInit(Key_t key) {
     FibNode* node = calloc(1, sizeof(FibNode));
     assert(node != NULL);
 
-    /*We create a node and loop on ourselves*/
     node->key = key;
     node->left = node;
     node->right = node;
@@ -297,51 +250,35 @@ static inline FibNode* fibNodeInit(Key_t key) {
 }
 
 static inline void fibNodeDtor(FibNode* node) {
-    if(node == NULL)
+    if(node == NULL) {
         return;
+    }
 
-    /*
-        Implementation via the stack, 
-        so as not to overflow the call stack with recursion.
-    */
-
-    /*Creating a stack*/
     Stack* stk = stackCtor();
     assert(stk != NULL);
 
-    /*The initial node to figure out when to end the cycle*/ 
     FibNode* first_node = node;
 
     for(;;) {
-        /*If there is a child, we remember it*/
-        if(node->child != NULL)
+        if(node->child != NULL) {
             stackPush(stk, node->child);
+        }
 
         stackPush(stk, node->right);
         free(node);
         node = stackTop(stk);
         stackPop(stk);
 
-        /*
-            If we find that we have gone through the 
-            entire list, we check the stack. If the 
-            stack is empty, we have cleared everything, 
-            we exit the loop. If the stack is not empty, 
-            we switch to the child and go through it again. 
-            It is important to note that with 
-            this implementation, the sequence of children is 
-            correct and does not need to be tracked.
-        */
         if(node == first_node) {
-            if(!stackSize(stk))
+            if(!stackSize(stk)) {
                 break;
+            }
             node = stackTop(stk);
             stackPop(stk);
             first_node = node;
         }
     }
 
-    /*Destroying the stack*/
     stackDtor(stk);
 }
 
@@ -349,7 +286,6 @@ static inline void fibNodeUnionLists(FibNode* first, FibNode* second) {
     assert(first != NULL);
     assert(second != NULL);
 
-    /*Carefully reconnect the nodes*/
     first->left->right = second->right;
     second->right->left = first->left;
     first->left = second;
@@ -394,24 +330,17 @@ static inline void fibHeapConsolidate(FibHeap* heap) {
 }
 
 static inline void fibNodeLink(FibNode* first, FibNode* second) {
-    /*We untie and loop the second node*/
     fibNodeUntie(second);
     fibNodeFixate(second);
-    
-    /*
-        If there were no children, 
-        then the first one appears. 
-        If there were children, 
-        we combine the lists of nodes.
-    */
-    if(first->child == NULL)
+
+    if(first->child == NULL) {
         first->child = second;
-    else
+    } else {
         fibNodeUnionLists(first->child, second);
+    }
 
     first->degree++;
 
-    /*Do not forget to update the parent*/
     second->parent = first;
 }
 
@@ -437,22 +366,19 @@ static inline void fibHeapCut(FibHeap* heap, FibNode* node) {
 
     node->parent->degree--;
 
-    /*Updating children from a parent*/
     if(node->parent->child == node) {
-        if(node == node->left)
+        if(node == node->left) {
             node->parent->child = NULL;
-        else
+        } else {
             node->parent->child = node->left;
+        }
     }
 
-    /*We untie and loop the second node*/
     fibNodeUntie(node);
     fibNodeFixate(node);
 
-    /*Do not forget to update the parent*/
     node->parent = NULL;
 
-    /*Moving the cut element to the root list*/
     fibNodeUnionLists(heap->min, node);
 }
 
@@ -460,10 +386,6 @@ static inline void fibHeapСascadingCut(FibHeap* heap, FibNode* node) {
     assert(heap != NULL);
     assert(node != NULL);
 
-    /*
-        We remember the parent because in 
-        the process of cutting it will disappear.
-    */
     FibNode* parent = node->parent;
 
     while(parent != NULL) {
