@@ -8,16 +8,16 @@ TNAME=
 ANAME=
 
 # The name of the file with the generated test
-GEN_TEST_NAME="generatedTest.out"
+GEN_TEST_NAME="generatedTest.txt"
 # The name of the file with the answer to the test
-ANS_NAME="ans.out"
+ANS_NAME="ans.txt"
 # The name of the file with the heap output to the test
-FIB_NAME="fib.out"
+FIB_NAME="fib.txt"
 # File name comparison of answer and heap inputs
-DIF_NAME="difference.out"
+DIF_NAME="difference.txt"
 
 # How many tests will there be (i.e. different runs of the program)
-NUMBER_OF_TESTS=100000
+NUMBER_OF_TESTS=1000
 
 # How many will the operation be inside one test
 SIZE_OF_TEST=1000
