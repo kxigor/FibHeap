@@ -2,29 +2,32 @@
 
 ![FibHeap](./images/art.png "Fibonacci Heap Graph")
 
-## Требования
-- СИ
+## Requirements
+- C
 - C++20 (g++ compiler)
-- nasm
-- graphviz
-- cmake
+- NASM
+- Graphviz
+- CMake
 
-### Компиляция тестового варианта
+## Requirements for the heap only
+- C or NASM
+
+### Compiling the test case
 ```bash
 ./runbuild.sh
 ```
-### Запуск тестового варианта
+### Running the test case
 ```
 ./asm_fib_heap.out
 ```
-Команды:
-- 1 {number} (вставить узел)
-- 2 (извлечь минимум)
-- 3 (удалить последний добалвенный)
+Commands:
+- 1 {number} (insert node)
+- 2 (extract minimum)
+- 3 (delete the last inserted)
 
-Куча будет отображаться в файле `fib_heap.png`
+The heap will be displayed in the file `fib_heap.png`
 
-#### Пример
+#### Example
 ```bash
 1 1
 1 2
@@ -41,14 +44,14 @@
 2
 3
 ```
-Результат:
+Result:
 ![Result](./images/example.png "I love fibheap")
 
-### Запуск тестов
+### Running tests
 ```bash
 ./test.sh
 ```
-### Эксплутатация
+### Documentation
 ```bash
 doxygen
 ```
